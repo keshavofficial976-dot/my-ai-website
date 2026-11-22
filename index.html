@@ -1,555 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Website Builder | Beginner Friendly</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    code, pre { font-family: 'JetBrains Mono', monospace; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col md:flex-row antialiased">
-
-  <!-- LEFT PANEL: Ultra-simple, beginner-friendly UI -->
-  <aside class="w-full md:w-[38%] h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-2xl overflow-y-auto">
-    
-    <!-- Top Branding & Step-by-Step Guide -->
-    <div class="p-5 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10 space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-indigo-500/25">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-          </div>
-          <div>
-            <h1 class="font-extrabold text-base tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
-              AI Website Builder
-            </h1>
-            <p class="text-[11px] text-slate-400 font-medium">Create websites with voice & AI in seconds</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Beginner Step-by-Step Guide -->
-      <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 space-y-2">
-        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-question"></i> Easy 3-Step Guide
-        </h2>
-        <ol class="text-[11px] text-slate-300 space-y-1 pl-1">
-          <li class="flex items-center gap-2">
-            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">1</span>
-            <span>Paste your free Gemini API key below.</span>
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">2</span>
-            <span>Click the Mic to speak or pick a starter template.</span>
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">3</span>
-            <span>Click <strong class="text-white">Create Website</strong> and download!</span>
-          </li>
-        </ol>
-      </div>
-
-      <!-- Saved Gemini API Key Input -->
-      <div class="space-y-1.5">
-        <div class="flex items-center justify-between text-xs text-slate-300">
-          <label for="apiKeyInput" class="font-semibold flex items-center gap-1.5">
-            <i class="fa-solid fa-key text-indigo-400"></i> Gemini API Key
-          </label>
-          <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1 transition text-[11px]">
-            Get free key <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-          </a>
-        </div>
-        <div class="relative flex items-center">
-          <input 
-            type="password" 
-            id="apiKeyInput" 
-            placeholder="Paste your API key here..." 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition pr-9 shadow-inner"
-          />
-          <button type="button" id="toggleApiKeyVis" class="absolute right-3 text-slate-500 hover:text-slate-300 text-xs" title="Toggle visibility">
-            <i class="fa-regular fa-eye" id="apiKeyVisIcon"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content Area of Left Panel -->
-    <div class="p-5 flex-1 flex flex-col gap-4">
-      
-      <!-- One-Click Starter Templates -->
-      <div class="space-y-2">
-        <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-wand-magic text-purple-400"></i> One-Click Starter Templates
-        </label>
-        <div class="grid grid-cols-3 gap-2">
-          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="bakery">
-            <div class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
-              <i class="fa-solid fa-cookie-bite"></i>
-            </div>
-            <span class="text-xs font-bold text-slate-200">Bakery Shop</span>
-            <span class="text-[10px] text-slate-500">Fresh artisanal pastries</span>
-          </button>
-
-          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="portfolio">
-            <div class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
-              <i class="fa-solid fa-user-tie"></i>
-            </div>
-            <span class="text-xs font-bold text-slate-200">Portfolio</span>
-            <span class="text-[10px] text-slate-500">Modern designer/dev</span>
-          </button>
-
-          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="fitness">
-            <div class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
-              <i class="fa-solid fa-dumbbell"></i>
-            </div>
-            <span class="text-xs font-bold text-slate-200">Fitness Gym</span>
-            <span class="text-[10px] text-slate-500">High-energy workouts</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Prompt Textbox & Big Friendly Voice Mic Button -->
-      <div class="space-y-2 flex-1 flex flex-col">
-        <div class="flex items-center justify-between">
-          <label for="promptInput" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-pen-nib text-indigo-400"></i> What do you want to build?
-          </label>
-        </div>
-
-        <div class="relative flex-1 flex flex-col">
-          <textarea 
-            id="promptInput" 
-            rows="5" 
-            placeholder="Type your website idea here or click the big mic button below to speak..." 
-            class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none shadow-inner leading-relaxed"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Big Friendly Voice Mic Button & Create Button -->
-      <div class="space-y-3 pt-2">
-        <div class="flex items-center gap-3">
-          <!-- Big Friendly Voice Mic Button -->
-          <button 
-            type="button" 
-            id="voiceBtn" 
-            title="Click to Speak"
-            class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 border border-slate-700 shadow-md transition transform active:scale-95 group"
-          >
-            <div class="w-7 h-7 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center group-hover:scale-110 transition">
-              <i class="fa-solid fa-microphone text-xs" id="micIcon"></i>
-            </div>
-            <span id="voiceBtnText">Click to Speak (Voice)</span>
-          </button>
-        </div>
-
-        <div id="recordingStatus" class="hidden items-center justify-center gap-2 text-red-400 text-xs font-semibold bg-red-500/10 border border-red-500/20 py-2 rounded-xl animate-pulse">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Listening... Speak now into your microphone
-        </div>
-
-        <!-- Big Create / Update Website Button -->
-        <button 
-          id="generateBtn" 
-          class="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 px-6 rounded-xl text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-indigo-600/30 transition transform active:scale-[0.99]"
-        >
-          <i class="fa-solid fa-wand-magic-sparkles text-base" id="generateIcon"></i>
-          <span id="generateText">Create / Update Website</span>
-        </button>
-      </div>
-
-    </div>
-  </aside>
-
-  <!-- RIGHT PANEL: Live preview iframe with Desktop/Mobile toggle & prominent Download Website button -->
-  <main class="w-full md:w-[62%] h-full flex flex-col bg-slate-950 relative">
-    
-    <!-- Top Bar -->
-    <header class="h-16 bg-slate-900 border-b border-slate-800 px-5 flex items-center justify-between shrink-0 z-10">
-      
-      <!-- Desktop / Mobile Preview Toggle -->
-      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
-        <button id="previewDesktop" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm">
-          <i class="fa-solid fa-desktop text-xs"></i> Desktop
-        </button>
-        <button id="previewMobile" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
-          <i class="fa-solid fa-mobile-screen text-xs"></i> Mobile
-        </button>
-      </div>
-
-      <!-- Prominent Download Website Button -->
-      <button id="downloadBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition transform active:scale-95">
-        <i class="fa-solid fa-download text-sm"></i> Download Website
-      </button>
-    </header>
-
-    <!-- Live Preview Iframe Container -->
-    <div id="previewContainer" class="flex-1 bg-slate-900/40 flex items-center justify-center p-0 md:p-5 overflow-hidden transition-all duration-300">
-      <div id="previewFrameWrapper" class="w-full h-full bg-white rounded-none md:rounded-2xl shadow-2xl overflow-hidden border border-slate-800 transition-all duration-300">
-        <iframe id="livePreviewFrame" class="w-full h-full border-0 bg-white" title="Live Website Preview"></iframe>
-      </div>
-    </div>
-  </main>
-
-  <!-- Toast Notification / Alert -->
-  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div id="toastContent" class="bg-slate-900 border border-slate-700 text-slate-100 px-4.5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3.5 text-xs font-medium">
-      <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-      <span id="toastMessage">Success notification message</span>
-    </div>
-  </div>
-
-  <!-- Application Logic -->
-  <script>
-    
-    let currentHtmlCode = \`<!DOCTYPE html>
-<html lang="en">
-<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to AI Website Builder</title>
-  <script src="https://cdn.tailwindcss.com"><\\/script>
+  <title>AI Website Builder</title>
+  <script src="https://tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-8 text-center">
-  <div class="max-w-2xl mx-auto space-y-6">
-    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-bold shadow-lg">
-      <i class="fa-solid fa-wand-magic-sparkles"></i> Welcome! Your Preview is Ready
+<body class="bg-slate-950 text-white h-screen flex flex-col md:flex-row overflow-hidden font-sans">
+  <div class="w-full md:w-1/3 bg-slate-900 border-r border-slate-800 p-6 flex flex-col gap-4 overflow-y-auto">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-bold text-indigo-400">AI Website Builder</h1>
+      <a href="https://google.com" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-indigo-300">Get Free Key</a>
     </div>
-    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">
-      Build Your Dream Website With AI
-    </h1>
-    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
-      Paste your free Gemini API key on the left, pick a starter template or describe your website in plain English (or use voice dictation), and click <strong class="text-indigo-300">Create / Update Website</strong>!
-    </p>
-    <div class="pt-4 flex flex-wrap justify-center gap-3">
-      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
-        <i class="fa-solid fa-bolt text-amber-400"></i> Instant Live Preview
-      </div>
-      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
-        <i class="fa-solid fa-microphone text-rose-400"></i> Voice Dictation
-      </div>
-      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
-        <i class="fa-solid fa-download text-emerald-400"></i> Easy Download
-      </div>
+    <div>
+      <label class="text-xs text-slate-400 block mb-1">1. Paste Your Gemini API Key</label>
+      <input id="apiKey" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
     </div>
+    <div>
+      <label class="text-xs text-slate-400 block mb-1">2. Pick a Quick Idea or Describe Yours</label>
+      <div class="flex gap-2 mb-2 flex-wrap">
+        <button onclick="setPrompt('Build a modern bakery website with menu items, photos, and an order form')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Bakery</button>
+        <button onclick="setPrompt('Build a clean personal portfolio website with projects and contact form')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Portfolio</button>
+        <button onclick="setPrompt('Build a fitness gym landing page with membership pricing and trainer cards')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Fitness Gym</button>
+      </div>
+      <textarea id="prompt" rows="4" placeholder="Speak or type what website you want..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500"></textarea>
+    </div>
+    <div class="flex gap-2">
+      <button id="micBtn" onclick="startVoice()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-lg text-sm font-medium">Speak</button>
+      <button id="genBtn" onclick="generateSite()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 rounded-lg text-sm font-semibold">Create Website</button>
+    </div>
+    <p id="status" class="text-xs text-slate-400"></p>
   </div>
-</body>
-</html>\`;
 
-    
-    const apiKeyInput = document.getElementById('apiKeyInput');
-    const toggleApiKeyVis = document.getElementById('toggleApiKeyVis');
-    const apiKeyVisIcon = document.getElementById('apiKeyVisIcon');
-    const promptInput = document.getElementById('promptInput');
-    const generateBtn = document.getElementById('generateBtn');
-    const generateIcon = document.getElementById('generateIcon');
-    const generateText = document.getElementById('generateText');
-    const voiceBtn = document.getElementById('voiceBtn');
-    const voiceBtnText = document.getElementById('voiceBtnText');
-    const micIcon = document.getElementById('micIcon');
-    const recordingStatus = document.getElementById('recordingStatus');
-    const livePreviewFrame = document.getElementById('livePreviewFrame');
-    const previewDesktop = document.getElementById('previewDesktop');
-    const previewMobile = document.getElementById('previewMobile');
-    const previewContainer = document.getElementById('previewContainer');
-    const previewFrameWrapper = document.getElementById('previewFrameWrapper');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const toastNotification = document.getElementById('toastNotification');
-    const toastMessage = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
-    const starterTemplateBtns = document.querySelectorAll('.starter-template-btn');
+  <div class="w-full md:w-2/3 flex flex-col bg-slate-950 h-full">
+    <div class="h-14 border-b border-slate-800 px-6 flex items-center justify-between bg-slate-900">
+      <span class="text-sm text-slate-300 font-medium">Live Website Preview</span>
+      <button onclick="downloadSite()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">Download Website</button>
+    </div>
+    <iframe id="preview" class="w-full flex-1 bg-white" srcdoc="<html><body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center'><h2>Your Website Will Appear Here</h2><p>Paste your free Gemini API key on the left and click Create Website.</p></div></body></html>"></iframe>
+  </div>
 
-    
-    const savedApiKey = localStorage.getItem('gemini_api_key');
-    if (savedApiKey) {
-      apiKeyInput.value = savedApiKey;
+  <script>
+    const keyInput = document.getElementById('apiKey');
+    keyInput.value = localStorage.getItem('gemini_key') || '';
+    keyInput.addEventListener('input', () => localStorage.setItem('gemini_key', keyInput.value.trim()));
+    let currentCode = '';
+
+    function setPrompt(text) {
+      document.getElementById('prompt').value = text;
     }
 
-    apiKeyInput.addEventListener('input', () => {
-      localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
-    });
-
-    
-    toggleApiKeyVis.addEventListener('click', () => {
-      if (apiKeyInput.type === 'password') {
-        apiKeyInput.type = 'text';
-        apiKeyVisIcon.className = 'fa-regular fa-eye-slash';
-      } else {
-        apiKeyInput.type = 'password';
-        apiKeyVisIcon.className = 'fa-regular fa-eye';
-      }
-    });
-
-    
-    function showToast(message, type = 'success') {
-      toastMessage.textContent = message;
-      toastIcon.className = type === 'success' 
-        ? 'fa-solid fa-circle-check text-emerald-400 text-base' 
-        : 'fa-solid fa-circle-exclamation text-rose-400 text-base';
-      toastNotification.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-      setTimeout(() => {
-        toastNotification.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-      }, 4000);
-    }
-
-    
-    function updateIframe(html) {
-      let cleaned = html.trim();
-      
-      
-      if (cleaned.startsWith('\\\`\\\`\\\`')) {
-        cleaned = cleaned.replace(/^\\\`\\\`\\\`[a-z]*\\n?/i, '');
-        cleaned = cleaned.replace(/\\\`\\\`\\\`$/, '');
-        cleaned = cleaned.trim();
-      }
-
-      
-      if (!cleaned.toLowerCase().startsWith('<!doctype html>')) {
-        cleaned = '<!DOCTYPE html>\\n' + cleaned;
-      }
-      if (!cleaned.toLowerCase().endsWith('</html>')) {
-        cleaned = cleaned + '\\n</html>';
-      }
-
-      currentHtmlCode = cleaned;
-      const blob = new Blob([currentHtmlCode], { type: 'text/html;charset=utf-8' });
-      livePreviewFrame.src = URL.createObjectURL(blob);
-    }
-
-    
-    updateIframe(currentHtmlCode);
-
-    
-    starterTemplateBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const templateType = btn.getAttribute('data-template');
-        if (templateType === 'bakery') {
-          promptInput.value = 'Create a stunning artisanal bakery website with hero banner, delicious pastry menu items with prices, customer reviews, and a contact ordering form.';
-        } else if (templateType === 'portfolio') {
-          promptInput.value = 'Create a sleek, modern personal portfolio website for a UI/UX designer and frontend developer with hero intro, projects showcase grid, skills badges, and contact section.';
-        } else if (templateType === 'fitness') {
-          promptInput.value = 'Create a high-energy fitness gym landing page with class schedule, trainer profiles, pricing membership tiers, and sign-up call to action.';
-        }
-        showToast('Starter template loaded into prompt!');
-      });
-    });
-
-    
-    
-    
-    let recognition = null;
-    let isRecording = false;
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        isRecording = true;
-        recordingStatus.classList.remove('hidden');
-        recordingStatus.classList.add('flex');
-        voiceBtnText.textContent = 'Listening... Click to Stop';
-        micIcon.className = 'fa-solid fa-microphone-slash text-xs text-red-400';
+    function startVoice() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return alert('Voice dictation works best in Chrome or Edge.');
+      const rec = new SR();
+      const btn = document.getElementById('micBtn');
+      btn.textContent = 'Listening...';
+      rec.onresult = (e) => {
+        document.getElementById('prompt').value = e.results[0][0].transcript;
       };
-
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        promptInput.value = transcript;
+      rec.onend = () => {
+        btn.textContent = 'Speak';
       };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        stopRecording();
-        showToast('Voice recognition error: ' + event.error, 'error');
-      };
-
-      recognition.onend = () => {
-        stopRecording();
-      };
+      rec.start();
     }
 
-    function stopRecording() {
-      isRecording = false;
-      recordingStatus.classList.add('hidden');
-      recordingStatus.classList.remove('flex');
-      voiceBtnText.textContent = 'Click to Speak (Voice)';
-      micIcon.className = 'fa-solid fa-microphone text-xs';
-    }
+    async function generateSite() {
+      const key = keyInput.value.trim();
+      const userPrompt = document.getElementById('prompt').value.trim();
+      const status = document.getElementById('status');
+      const btn = document.getElementById('genBtn');
+      if (!key) return alert('Please paste your free Gemini API key first.');
+      if (!userPrompt) return alert('Please speak or type what website you want.');
 
-    voiceBtn.addEventListener('click', () => {
-      if (!recognition) {
-        showToast('Speech recognition is not supported in your browser.', 'error');
-        return;
-      }
-      if (isRecording) {
-        recognition.stop();
-        stopRecording();
-      } else {
-        try {
-          recognition.start();
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
+      btn.disabled = true;
+      btn.textContent = 'Building...';
+      status.textContent = 'Creating your website...';
 
-    
-    
-    
-    async function callGeminiAPI(promptText) {
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) {
-        throw new Error('Please enter your Gemini API Key first.');
-      }
+      const instruction = 'Return ONLY raw valid single-file HTML using Tailwind CSS CDN. No markdown backticks, no explanations. ' +
+        (currentCode ? 'Update this existing HTML: ' + currentCode + ' based on: ' : 'Create a complete responsive website for: ') + userPrompt;
 
-      const systemInstruction = `You are an expert AI Web Developer and UI/UX Designer.
-The user wants to generate or update a website.
-You must return ONLY raw complete single-file HTML code containing Tailwind CSS CDN (<script src="https://cdn.tailwindcss.com"></script>) and FontAwesome CDN if helpful.
-CRITICAL RULES:
-1. Return ONLY valid HTML code. No markdown code blocks (NO \\\`\\\`\\\`html or \\\`\\\`\\\`), no explanations, no conversational text before or after the HTML.
-2. The HTML must start with <!DOCTYPE html> and end with </html>.
-3. The HTML must be fully self-contained, responsive, interactive, and modern with gorgeous Tailwind styling.
-4. If the user is modifying or updating an existing website, incorporate their requested changes.`;
-
-      const fullPrompt = `${systemInstruction}\\n\\nCURRENT HTML CODE:\\n${currentHtmlCode}\\n\\nUSER REQUEST:\\n${promptText}`;
-      
-      const contents = [{
-        role: 'user',
-        parts: [{ text: fullPrompt }]
-      }];
-
-      
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
-      let lastError = null;
-
-      for (const model of models) {
+      for (const m of models) {
         try {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-          const response = await fetch(url, {
+          const res = await fetch('https://googleapis.com' + m + ':generateContent?key=' + key, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents })
+            body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: instruction }] }] })
           });
-
-          if (!response.ok) {
-            const errData = await response.text();
-            throw new Error(`Model ${model} error (${response.status}): ${errData}`);
-          }
-
-          const data = await response.json();
-          const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!candidateText) {
-            throw new Error(`Model ${model} returned empty response.`);
-          }
-
-          return candidateText;
-        } catch (err) {
-          console.warn(`Failed with model ${model}, trying fallback...`, err);
-          lastError = err;
-        }
+          if (!res.ok) continue;
+          const data = await res.json();
+          let raw = data.candidates[0].content.parts[0].text;
+          raw = raw.replace(/^```html\s*/i, '').replace(/```$/i, '').trim();
+          currentCode = raw;
+          document.getElementById('preview').srcdoc = raw;
+          status.textContent = 'Done! Type more changes to edit it, or click Download Website.';
+          btn.disabled = false;
+          btn.textContent = 'Update Website';
+          return;
+        } catch (e) {}
       }
 
-      throw lastError || new Error('All Gemini model fallbacks failed.');
+      status.textContent = 'Could not connect. Check your API key and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Create Website';
     }
 
-    
-    generateBtn.addEventListener('click', async () => {
-      const promptText = promptInput.value.trim();
-      if (!promptText) {
-        showToast('Please enter what you want to build or select a starter template.', 'error');
-        promptInput.focus();
-        return;
-      }
-
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) {
-        showToast('Please enter your Gemini API key.', 'error');
-        apiKeyInput.focus();
-        return;
-      }
-
-      
-      generateBtn.disabled = true;
-      generateIcon.className = 'fa-solid fa-spinner fa-spin text-base';
-      generateText.textContent = 'Creating Website...';
-
-      try {
-        const rawAiOutput = await callGeminiAPI(promptText);
-        updateIframe(rawAiOutput);
-        showToast('Website created successfully!');
-      } catch (error) {
-        console.error(error);
-        showToast('Generation failed: ' + (error.message || 'Check API Key'), 'error');
-      } finally {
-        generateBtn.disabled = false;
-        generateIcon.className = 'fa-solid fa-wand-magic-sparkles text-base';
-        generateText.textContent = 'Create / Update Website';
-      }
-    });
-
-    
-    promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        generateBtn.click();
-      }
-    });
-
-    
-    
-    
-    previewDesktop.addEventListener('click', () => {
-      previewDesktop.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm';
-      previewMobile.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
-      previewFrameWrapper.style.maxWidth = '100%';
-      previewFrameWrapper.style.height = '100%';
-      previewFrameWrapper.classList.remove('rounded-3xl', 'border-4', 'border-slate-700', 'shadow-2xl');
-      previewContainer.classList.add('p-0', 'md:p-5');
-      previewContainer.classList.remove('p-5');
-    });
-
-    previewMobile.addEventListener('click', () => {
-      previewMobile.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm';
-      previewDesktop.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
-      previewFrameWrapper.style.maxWidth = '390px';
-      previewFrameWrapper.style.height = '844px';
-      previewFrameWrapper.classList.add('rounded-3xl', 'border-4', 'border-slate-700', 'shadow-2xl');
-      previewContainer.classList.remove('p-0', 'md:p-5');
-      previewContainer.classList.add('p-5');
-    });
-
-    
-    
-    
-    downloadBtn.addEventListener('click', () => {
-      const blob = new Blob([currentHtmlCode], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
+    function downloadSite() {
+      if (!currentCode) return alert('Create a website first!');
       const a = document.createElement('a');
-      a.href = url;
-      a.download = 'index.html';
-      document.body.appendChild(a);
+      a.href = URL.createObjectURL(new Blob([currentCode], { type: 'text/html' }));
+      a.download = 'my-website.html';
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('index.html downloaded successfully!');
-    });
+    }
   </script>
 </body>
 </html>
