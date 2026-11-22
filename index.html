@@ -4,40 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Website Builder</title>
-  <script src="https://tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
+    .sidebar { width: 360px; min-width: 320px; background: #1e293b; border-right: 1px solid #334155; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.25rem; color: #818cf8; }
+    .key-link { font-size: 0.75rem; background: #334155; color: #a5b4fc; text-decoration: none; padding: 6px 10px; border-radius: 6px; }
+    label { font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 6px; font-weight: 600; }
+    input, textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; outline: none; }
+    input:focus, textarea:focus { border-color: #6366f1; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .chip { background: #334155; color: #e2e8f0; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    .chip:hover { background: #475569; }
+    .actions { display: flex; gap: 10px; }
+    .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .btn-mic { background: #334155; color: #fff; }
+    .btn-mic:hover { background: #475569; }
+    .btn-create { flex: 2; background: #4f46e5; color: #fff; }
+    .btn-create:hover { background: #4338ca; }
+    .btn-create:disabled { opacity: 0.6; cursor: wait; }
+    #status { font-size: 0.82rem; color: #38bdf8; min-height: 20px; }
+    .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+    .topbar { height: 56px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-download { background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+    .btn-download:hover { background: #059669; }
+    iframe { flex: 1; width: 100%; border: none; background: #fff; }
+    @media (max-width: 768px) { body { flex-direction: column; overflow: auto; height: auto; } .sidebar { width: 100%; } .main { height: 80vh; } }
+  </style>
 </head>
-<body class="bg-slate-950 text-white h-screen flex flex-col md:flex-row overflow-hidden font-sans">
-  <div class="w-full md:w-1/3 bg-slate-900 border-r border-slate-800 p-6 flex flex-col gap-4 overflow-y-auto">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-indigo-400">AI Website Builder</h1>
-      <a href="https://google.com" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-indigo-300">Get Free Key</a>
+<body>
+  <div class="sidebar">
+    <div class="header">
+      <h1>AI Website Builder</h1>
+      <a href="https://google.com" target="_blank" class="key-link">Get Free Key</a>
     </div>
     <div>
-      <label class="text-xs text-slate-400 block mb-1">1. Paste Your Gemini API Key</label>
-      <input id="apiKey" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+      <label>1. Paste Your Gemini API Key</label>
+      <input id="apiKey" type="password" placeholder="AIzaSy...">
     </div>
     <div>
-      <label class="text-xs text-slate-400 block mb-1">2. Pick a Quick Idea or Describe Yours</label>
-      <div class="flex gap-2 mb-2 flex-wrap">
-        <button onclick="setPrompt('Build a modern bakery website with menu items, photos, and an order form')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Bakery</button>
-        <button onclick="setPrompt('Build a clean personal portfolio website with projects and contact form')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Portfolio</button>
-        <button onclick="setPrompt('Build a fitness gym landing page with membership pricing and trainer cards')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md">Fitness Gym</button>
+      <label>2. Pick a Quick Idea or Describe Yours</label>
+      <div class="chips">
+        <button class="chip" onclick="setPrompt('Build a modern bakery website with menu items, photos, and an order form')">Bakery</button>
+        <button class="chip" onclick="setPrompt('Build a clean personal portfolio website with projects and contact form')">Portfolio</button>
+        <button class="chip" onclick="setPrompt('Build a fitness gym landing page with membership pricing and trainer cards')">Fitness Gym</button>
       </div>
-      <textarea id="prompt" rows="4" placeholder="Speak or type what website you want..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500"></textarea>
+      <textarea id="prompt" rows="4" placeholder="Speak or type what website you want..."></textarea>
     </div>
-    <div class="flex gap-2">
-      <button id="micBtn" onclick="startVoice()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-lg text-sm font-medium">Speak</button>
-      <button id="genBtn" onclick="generateSite()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 rounded-lg text-sm font-semibold">Create Website</button>
+    <div class="actions">
+      <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
+      <button id="genBtn" class="btn btn-create" onclick="generateSite()">Create Website</button>
     </div>
-    <p id="status" class="text-xs text-slate-400"></p>
+    <p id="status"></p>
   </div>
 
-  <div class="w-full md:w-2/3 flex flex-col bg-slate-950 h-full">
-    <div class="h-14 border-b border-slate-800 px-6 flex items-center justify-between bg-slate-900">
-      <span class="text-sm text-slate-300 font-medium">Live Website Preview</span>
-      <button onclick="downloadSite()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">Download Website</button>
+  <div class="main">
+    <div class="topbar">
+      <span>Live Website Preview</span>
+      <button class="btn-download" onclick="downloadSite()">Download Website</button>
     </div>
-    <iframe id="preview" class="w-full flex-1 bg-white" srcdoc="<html><body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center'><h2>Your Website Will Appear Here</h2><p>Paste your free Gemini API key on the left and click Create Website.</p></div></body></html>"></iframe>
+    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Your Website Will Appear Here</h2><p>1. Paste your free Gemini API key on the left<br>2. Click Bakery (or Speak/Type your idea)<br>3. Click Create Website</p></div></body></html>"></iframe>
   </div>
 
   <script>
@@ -77,8 +104,8 @@
       btn.textContent = 'Building...';
       status.textContent = 'Creating your website...';
 
-      const instruction = 'Return ONLY raw valid single-file HTML using Tailwind CSS CDN. No markdown backticks, no explanations. ' +
-        (currentCode ? 'Update this existing HTML: ' + currentCode + ' based on: ' : 'Create a complete responsive website for: ') + userPrompt;
+      const instruction = 'Return ONLY raw valid single-file HTML with clean internal CSS styling. No markdown backticks, no explanations. ' +
+        (currentCode ? 'Update this existing HTML: ' + currentCode + ' based on: ' : 'Create a complete responsive modern website for: ') + userPrompt;
 
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
       for (const m of models) {
