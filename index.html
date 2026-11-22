@@ -110,9 +110,9 @@
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
       for (const m of models) {
         try {
-          const res = await fetch('https://googleapis.com' + m + ':generateContent?key=' + key, {
+          const res = await fetch('https://googleapis.com' + m + ':generateContent', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
             body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: instruction }] }] })
           });
           if (!res.ok) { const t = await res.text(); status.textContent = m + ': ' + t; continue; }
