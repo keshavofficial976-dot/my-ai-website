@@ -24,7 +24,7 @@ def serve_home():
 def generate_site(req: SiteRequest):
     instruction = (
         "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-        "No markdown backticks, no explanations. "
+        "No markdown backticks, no explanations. All buttons and navigation links must scroll smoothly to sections on the same page using #section-id (never link to external URLs or reload the page). "
         + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
         + req.prompt
     )
@@ -36,9 +36,3 @@ def generate_site(req: SiteRequest):
         except Exception:
             continue
     raise HTTPException(status_code=503, detail="AI servers busy, please retry in a moment.")
-instruction = (
-    "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-    "No markdown backticks, no explanations. All buttons and navigation links must scroll smoothly to sections on the same page using #section-id (never link to external URLs or reload the page). "
-    + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
-    + req.prompt
-)
