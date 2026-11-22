@@ -16,6 +16,28 @@ class SiteRequest(BaseModel):
     prompt: str
     current_code: str = ""
 
+SAFE_PREVIEW_SCRIPT = """
+<script>
+document.addEventListener('click', function(e) {
+  const link = e.target.closest('a');
+  if (link) {
+    const href = link.getAttribute('href') || '';
+    if (href.startsWith('#') && href.length > 1) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      e.preventDefault();
+    }
+  }
+});
+document.addEventListener('submit', function(e) {
+  e.preventDefault();
+  alert('Form submitted! (Preview Mode)');
+});
+</script>
+"""
+
 @app.get("/")
 def serve_home():
     return FileResponse("index.html")
@@ -24,7 +46,7 @@ def serve_home():
 def generate_site(req: SiteRequest):
     instruction = (
         "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-        "No markdown backticks, no explanations. All buttons and navigation links must scroll smoothly to sections on the same page using #section-id (never link to external URLs or reload the page). "
+        "No markdown backticks, no explanations. All navigation links must use #section-id anchors. "
         + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
         + req.prompt
     )
@@ -32,6 +54,10 @@ def generate_site(req: SiteRequest):
         try:
             res = client.models.generate_content(model=model_name, contents=instruction)
             html = res.text.replace("```html", "").replace("```", "").strip()
+            if "</body>" in html:
+                html = html.replace("</body>", SAFE_PREVIEW_SCRIPT + "\n</body>")
+            else:
+                html += SAFE_PREVIEW_SCRIPT
             return {"html": html}
         except Exception:
             continue
