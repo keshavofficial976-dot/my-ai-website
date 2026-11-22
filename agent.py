@@ -9,12 +9,13 @@ from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 
-# 1. Load API Key & Initialize Gemini Client
-load_dotenv()
-client = genai.Client()
 
-# Each model has its own separate Free Tier per-minute quota!
-MODELS = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
+# 1. Load API Key & Initialize Gemini Client (15s timeout so it never hangs silently)
+load_dotenv()
+client = genai.Client(http_options=types.HttpOptions(timeout=15000))
+
+# Put the fastest, lowest-congestion model first!
+MODELS = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash"]
 
 # 2. Define Agent Tools (Windows-safe + File Reading + Permissions)
 def list_files(directory: str = ".") -> str:
@@ -52,7 +53,8 @@ def run_terminal_command(command: str) -> str:
     if approval != 'y':
         return "Command denied by the user."
     
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+
     output = result.stdout if result.returncode == 0 else result.stderr
     print(f"💻 Terminal Output:\n{output}")
     return output or "Command executed with no output."
