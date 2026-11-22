@@ -212,7 +212,7 @@
 
   <!-- Application Logic -->
   <script>
-    // Initial Default HTML Template for the live preview
+    
     let currentHtmlCode = \`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -247,7 +247,7 @@
 </body>
 </html>\`;
 
-    // DOM Elements
+    
     const apiKeyInput = document.getElementById('apiKeyInput');
     const toggleApiKeyVis = document.getElementById('toggleApiKeyVis');
     const apiKeyVisIcon = document.getElementById('apiKeyVisIcon');
@@ -270,7 +270,7 @@
     const toastIcon = document.getElementById('toastIcon');
     const starterTemplateBtns = document.querySelectorAll('.starter-template-btn');
 
-    // Load API Key from localStorage on startup
+    
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       apiKeyInput.value = savedApiKey;
@@ -280,7 +280,7 @@
       localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
     });
 
-    // Toggle API Key Visibility
+    
     toggleApiKeyVis.addEventListener('click', () => {
       if (apiKeyInput.type === 'password') {
         apiKeyInput.type = 'text';
@@ -291,7 +291,7 @@
       }
     });
 
-    // Toast Notification helper
+    
     function showToast(message, type = 'success') {
       toastMessage.textContent = message;
       toastIcon.className = type === 'success' 
@@ -303,18 +303,18 @@
       }, 4000);
     }
 
-    // Render HTML into Iframe with verification
+    
     function updateIframe(html) {
       let cleaned = html.trim();
       
-      // Automatic cleaning of markdown backticks if present
+      
       if (cleaned.startsWith('\\\`\\\`\\\`')) {
         cleaned = cleaned.replace(/^\\\`\\\`\\\`[a-z]*\\n?/i, '');
         cleaned = cleaned.replace(/\\\`\\\`\\\`$/, '');
         cleaned = cleaned.trim();
       }
 
-      // Verify HTML starts with <!DOCTYPE html> and ends with </html>
+      
       if (!cleaned.toLowerCase().startsWith('<!doctype html>')) {
         cleaned = '<!DOCTYPE html>\\n' + cleaned;
       }
@@ -327,10 +327,10 @@
       livePreviewFrame.src = URL.createObjectURL(blob);
     }
 
-    // Initialize iframe preview
+    
     updateIframe(currentHtmlCode);
 
-    // Starter Templates click handlers
+    
     starterTemplateBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const templateType = btn.getAttribute('data-template');
@@ -345,9 +345,9 @@
       });
     });
 
-    // ==========================================================================
-    // Voice Dictate (Speech Recognition Web Speech API)
-    // ==========================================================================
+    
+    
+    
     let recognition = null;
     let isRecording = false;
 
@@ -410,9 +410,9 @@
       }
     });
 
-    // ==========================================================================
-    // Gemini API Call with models ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'] and fallback
-    // ==========================================================================
+    
+    
+    
     async function callGeminiAPI(promptText) {
       const apiKey = apiKeyInput.value.trim();
       if (!apiKey) {
@@ -435,7 +435,7 @@ CRITICAL RULES:
         parts: [{ text: fullPrompt }]
       }];
 
-      // Models list as requested
+      
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
       let lastError = null;
 
@@ -469,7 +469,7 @@ CRITICAL RULES:
       throw lastError || new Error('All Gemini model fallbacks failed.');
     }
 
-    // Generate Button Click Event
+    
     generateBtn.addEventListener('click', async () => {
       const promptText = promptInput.value.trim();
       if (!promptText) {
@@ -485,7 +485,7 @@ CRITICAL RULES:
         return;
       }
 
-      // UI Loading State
+      
       generateBtn.disabled = true;
       generateIcon.className = 'fa-solid fa-spinner fa-spin text-base';
       generateText.textContent = 'Creating Website...';
@@ -504,7 +504,7 @@ CRITICAL RULES:
       }
     });
 
-    // Allow Enter key in textarea (Shift+Enter for newline)
+    
     promptInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -512,9 +512,9 @@ CRITICAL RULES:
       }
     });
 
-    // ==========================================================================
-    // Preview Mode Toggle (Desktop vs Mobile)
-    // ==========================================================================
+    
+    
+    
     previewDesktop.addEventListener('click', () => {
       previewDesktop.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm';
       previewMobile.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
@@ -535,9 +535,9 @@ CRITICAL RULES:
       previewContainer.classList.add('p-5');
     });
 
-    // ==========================================================================
-    // Download Website Button
-    // ==========================================================================
+    
+    
+    
     downloadBtn.addEventListener('click', () => {
       const blob = new Blob([currentHtmlCode], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
