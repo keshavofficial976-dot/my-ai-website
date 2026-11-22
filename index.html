@@ -115,7 +115,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: instruction }] }] })
           });
-          if (!res.ok) continue;
+          if (!res.ok) { const t = await res.text(); status.textContent = m + ': ' + t; continue; }
           const data = await res.json();
           let raw = data.candidates[0].content.parts[0].text;
           raw = raw.replace(/^```html\s*/i, '').replace(/```$/i, '').trim();
