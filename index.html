@@ -61,8 +61,14 @@
     </div>
 
     <div class="input-area">
+      <div id="imgPreviewBar" style="display:none;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #475569;padding:6px 10px;border-radius:8px;font-size:0.78rem;color:#a5b4fc;">
+        <span id="imgFileName">Photo attached</span>
+        <button onclick="clearImage()" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">✕ Remove</button>
+      </div>
+      <input type="file" id="imgInput" accept="image/*" style="display:none;" onchange="handleImage(event)">
       <textarea id="prompt" rows="2" placeholder="Chat with AI or say 'Change the menu' (Press Enter to send)..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
       <div class="actions">
+        <button class="btn btn-mic" onclick="document.getElementById('imgInput').click()">+ Photo</button>
         <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
         <button id="sendBtn" class="btn btn-send" onclick="sendMessage()">Send</button>
       </div>
@@ -81,6 +87,30 @@
   </div>
 
   <script>
+    let selectedImgData = '';
+    let selectedImgMime = '';
+
+    function handleImage(e) {
+      const file = e.target.files.at(0);
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parts = reader.result.split(',');
+        selectedImgMime = file.type || 'image/png';
+        selectedImgData = parts.at(1);
+        document.getElementById('imgFileName').textContent = '📎 ' + file.name;
+        document.getElementById('imgPreviewBar').style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+      selectedImgData = '';
+      selectedImgMime = '';
+      document.getElementById('imgInput').value = '';
+      document.getElementById('imgPreviewBar').style.display = 'none';
+    }
+
     let currentCode = '';
     let chatHistory = [];
 
@@ -116,23 +146,23 @@
       const box = document.getElementById('prompt');
       const text = box.value.trim();
       const btn = document.getElementById('sendBtn');
-      if (!text) return;
+      if (!text && !selectedImgData) return;
 
       box.value = '';
-      appendMsg('user', text);
+      appendMsg('user', (selectedImgData ? '[Photo attached] ' : '') + (text || 'Please build/update based on this photo.'));
       btn.disabled = true;
       btn.textContent = 'Thinking...';
 
       try {
-        const res = await fetch('/api/generate', {
+        const imgSnap = selectedImgData; clearImage(); const res = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: text,
+            message: text || 'Build or update the website based on this attached image.',
             history: chatHistory,
             current_code: currentCode,
             owner_email: document.getElementById('ownerEmail').value,
-            owner_whatsapp: document.getElementById('ownerWhatsapp').value
+            owner_whatsapp: document.getElementById('ownerWhatsapp').value, image_data: selectedImgData, image_mime: selectedImgMime
           })
         });
         if (res.ok) {

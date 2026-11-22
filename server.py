@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 load_dotenv()
 client = genai.Client()
@@ -20,6 +22,8 @@ class ChatRequest(BaseModel):
     current_code: str = ""
     owner_email: str = ""
     owner_whatsapp: str = ""
+    image_data: str = ""
+    image_mime: str = ""
 
 def build_form_script(owner_email: str, owner_whatsapp: str) -> str:
     clean_phone = "".join(ch for ch in owner_whatsapp if ch.isdigit())
@@ -102,18 +106,26 @@ def chat_or_build(req: ChatRequest):
     recent_chat = "\n".join([f"{m['role']}: {m['text']}" for m in req.history[-8:]])
     instruction = (
         "You are a friendly, interactive two-way AI Web Designer co-pilot collaborating with the user like a human partner. "
-        "Decide whether the user is asking a question/chatting OR wants to create/update the website.\n"
+        "If the user attached an image (such as a screenshot, menu photo, or sketch), analyze every visual detail and apply it accurately.\n"
         "Return ONLY a raw JSON object (no markdown backticks) with:\n"
-        "1. \"reply\": Your natural conversational response (if you built/edited the site, say what you changed, ask them to verify it on the right, and propose 1-2 helpful next ideas; if they are just chatting/asking advice, answer helpfully and ask how they'd like to proceed).\n"
-        "2. \"html\": If creating or updating the website, provide the COMPLETE valid single-file HTML with clean internal CSS (all nav links must use #section-id, all forms must use <form> and <button type='submit'>). If the user is only asking a question and no website change was requested, set \"html\" to \"\".\n\n"
+        "1. \"reply\": Your natural conversational response (if you built/edited the site, explain what you changed, ask them to verify it on the right, and propose 1-2 next ideas; if they are just asking a question, answer helpfully).\n"
+        "2. \"html\": If creating or updating the website, provide the COMPLETE valid single-file HTML with clean internal CSS (all nav links must use #section-id, all forms must use <form> and <button type='submit'>). If only answering a question, set \"html\" to \"\".\n\n"
         f"Conversation so far:\n{recent_chat}\n"
         f"Current Website HTML:\n{req.current_code if req.current_code else '(None yet)'}\n\n"
         f"User's latest message: {req.message}"
     )
 
+    contents = [instruction]
+    if req.image_data and req.image_mime:
+        try:
+            img_bytes = base64.b64decode(req.image_data)
+            contents.append(types.Part.from_bytes(data=img_bytes, mime_type=req.image_mime))
+        except Exception:
+            pass
+
     for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
-            res = client.models.generate_content(model=model_name, contents=instruction)
+            res = client.models.generate_content(model=model_name, contents=contents)
             raw = res.text.replace("```json", "").replace("```html", "").replace("```", "").strip()
             parsed = json.loads(raw)
             reply = parsed.get("reply", "Done! Let me know what you'd like to adjust next.")
