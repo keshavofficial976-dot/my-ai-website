@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Website Builder | Split-Screen Studio</title>
+  <title>AI Website Builder | Beginner Friendly</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,6 @@
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     code, pre { font-family: 'JetBrains Mono', monospace; }
-    /* Custom scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -22,172 +21,199 @@
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col md:flex-row antialiased">
 
-  <!-- LEFT PANEL: 35% width on desktop, full on mobile -->
-  <aside class="w-full md:w-[35%] h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-2xl">
+  <!-- LEFT PANEL: Ultra-simple, beginner-friendly UI -->
+  <aside class="w-full md:w-[38%] h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-2xl overflow-y-auto">
     
-    <!-- Clean Header with Gemini API Key Input -->
-    <div class="p-4 border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-10 flex flex-col gap-3">
+    <!-- Top Branding & Step-by-Step Guide -->
+    <div class="p-5 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10 space-y-4">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-indigo-500/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-indigo-500/25">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
-          <h1 class="font-bold text-base tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
-            AI Website Builder
-          </h1>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Gemini 3 Active
-          </span>
+          <div>
+            <h1 class="font-extrabold text-base tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+              AI Website Builder
+            </h1>
+            <p class="text-[11px] text-slate-400 font-medium">Create websites with voice & AI in seconds</p>
+          </div>
         </div>
       </div>
 
-      <!-- Gemini API Key Input -->
-      <div class="space-y-1">
-        <div class="flex items-center justify-between text-xs text-slate-400">
-          <label for="apiKeyInput" class="font-medium flex items-center gap-1">
+      <!-- Beginner Step-by-Step Guide -->
+      <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 space-y-2">
+        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-question"></i> Easy 3-Step Guide
+        </h2>
+        <ol class="text-[11px] text-slate-300 space-y-1 pl-1">
+          <li class="flex items-center gap-2">
+            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">1</span>
+            <span>Paste your free Gemini API key below.</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">2</span>
+            <span>Click the Mic to speak or pick a starter template.</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px]">3</span>
+            <span>Click <strong class="text-white">Create Website</strong> and download!</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Saved Gemini API Key Input -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs text-slate-300">
+          <label for="apiKeyInput" class="font-semibold flex items-center gap-1.5">
             <i class="fa-solid fa-key text-indigo-400"></i> Gemini API Key
           </label>
-          <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1 transition">
-            Get free key <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1 transition text-[11px]">
+            Get free key <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
           </a>
         </div>
         <div class="relative flex items-center">
           <input 
             type="password" 
             id="apiKeyInput" 
-            placeholder="Paste your AI Studio API key..." 
-            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition pr-8"
+            placeholder="Paste your API key here..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition pr-9 shadow-inner"
           />
-          <button type="button" id="toggleApiKeyVis" class="absolute right-2.5 text-slate-500 hover:text-slate-300 text-xs" title="Toggle visibility">
+          <button type="button" id="toggleApiKeyVis" class="absolute right-3 text-slate-500 hover:text-slate-300 text-xs" title="Toggle visibility">
             <i class="fa-regular fa-eye" id="apiKeyVisIcon"></i>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Chat History Box -->
-    <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-950/40 text-xs">
-      <div class="flex items-start gap-2.5">
-        <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white shrink-0 font-bold text-[10px]">
-          AI
-        </div>
-        <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 text-slate-200 max-w-[85%] leading-relaxed shadow-sm">
-          <p class="font-semibold text-indigo-300 mb-1">Welcome to AI Website Builder!</p>
-          <p>Describe the website you want to build in the prompt box below, or click the mic to speak. I will generate a complete, responsive single-file website with Tailwind CSS instantly!</p>
+    <!-- Main Content Area of Left Panel -->
+    <div class="p-5 flex-1 flex flex-col gap-4">
+      
+      <!-- One-Click Starter Templates -->
+      <div class="space-y-2">
+        <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic text-purple-400"></i> One-Click Starter Templates
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="bakery">
+            <div class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
+              <i class="fa-solid fa-cookie-bite"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-200">Bakery Shop</span>
+            <span class="text-[10px] text-slate-500">Fresh artisanal pastries</span>
+          </button>
+
+          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="portfolio">
+            <div class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-200">Portfolio</span>
+            <span class="text-[10px] text-slate-500">Modern designer/dev</span>
+          </button>
+
+          <button type="button" class="starter-template-btn bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-2.5 text-left transition flex flex-col gap-1 group" data-template="fitness">
+            <div class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs group-hover:scale-110 transition">
+              <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-200">Fitness Gym</span>
+            <span class="text-[10px] text-slate-500">High-energy workouts</span>
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Prompt Input & Controls Area -->
-    <div class="p-4 border-t border-slate-800 bg-slate-900 flex flex-col gap-3">
-      <div class="relative">
-        <textarea 
-          id="promptInput" 
-          rows="3" 
-          placeholder="e.g., Create a modern SaaS landing page for a cybersecurity startup with dark mode, pricing cards, testimonial slider, and sleek hero..." 
-          class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none pr-10"
-        ></textarea>
-        <!-- Voice Dictate Button inside textarea bottom-right -->
-        <button 
-          type="button" 
-          id="voiceBtn" 
-          title="Voice Dictate (Speech Recognition)"
-          class="absolute bottom-3 right-3 w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition border border-slate-700"
-        >
-          <i class="fa-solid fa-microphone text-xs" id="micIcon"></i>
-        </button>
+      <!-- Prompt Textbox & Big Friendly Voice Mic Button -->
+      <div class="space-y-2 flex-1 flex flex-col">
+        <div class="flex items-center justify-between">
+          <label for="promptInput" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-pen-nib text-indigo-400"></i> What do you want to build?
+          </label>
+        </div>
+
+        <div class="relative flex-1 flex flex-col">
+          <textarea 
+            id="promptInput" 
+            rows="5" 
+            placeholder="Type your website idea here or click the big mic button below to speak..." 
+            class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none shadow-inner leading-relaxed"
+          ></textarea>
+        </div>
       </div>
 
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <span id="recordingStatus" class="hidden items-center gap-1 text-red-400 animate-pulse font-medium">
-            <span class="w-2 h-2 rounded-full bg-red-500"></span> Listening...
-          </span>
+      <!-- Big Friendly Voice Mic Button & Create Button -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center gap-3">
+          <!-- Big Friendly Voice Mic Button -->
+          <button 
+            type="button" 
+            id="voiceBtn" 
+            title="Click to Speak"
+            class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 border border-slate-700 shadow-md transition transform active:scale-95 group"
+          >
+            <div class="w-7 h-7 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center group-hover:scale-110 transition">
+              <i class="fa-solid fa-microphone text-xs" id="micIcon"></i>
+            </div>
+            <span id="voiceBtnText">Click to Speak (Voice)</span>
+          </button>
         </div>
+
+        <div id="recordingStatus" class="hidden items-center justify-center gap-2 text-red-400 text-xs font-semibold bg-red-500/10 border border-red-500/20 py-2 rounded-xl animate-pulse">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Listening... Speak now into your microphone
+        </div>
+
+        <!-- Big Create / Update Website Button -->
         <button 
           id="generateBtn" 
-          class="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition transform active:scale-[0.99]"
+          class="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 px-6 rounded-xl text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-indigo-600/30 transition transform active:scale-[0.99]"
         >
-          <i class="fa-solid fa-wand-magic-sparkles text-xs" id="generateIcon"></i>
-          <span id="generateText">Generate Website</span>
+          <i class="fa-solid fa-wand-magic-sparkles text-base" id="generateIcon"></i>
+          <span id="generateText">Create / Update Website</span>
         </button>
       </div>
+
     </div>
   </aside>
 
-  <!-- RIGHT PANEL: 65% width on desktop, live preview + top bar -->
-  <main class="w-full md:w-[65%] h-full flex flex-col bg-slate-950 relative">
+  <!-- RIGHT PANEL: Live preview iframe with Desktop/Mobile toggle & prominent Download Website button -->
+  <main class="w-full md:w-[62%] h-full flex flex-col bg-slate-950 relative">
     
     <!-- Top Bar -->
-    <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-10">
-      <!-- Preview Mode Toggle (Desktop/Mobile) -->
-      <div class="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800">
-        <button id="previewDesktop" class="px-3 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm">
-          <i class="fa-solid fa-desktop text-[11px]"></i> Desktop
+    <header class="h-16 bg-slate-900 border-b border-slate-800 px-5 flex items-center justify-between shrink-0 z-10">
+      
+      <!-- Desktop / Mobile Preview Toggle -->
+      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
+        <button id="previewDesktop" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm">
+          <i class="fa-solid fa-desktop text-xs"></i> Desktop
         </button>
-        <button id="previewMobile" class="px-3 py-1 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-mobile-screen text-[11px]"></i> Mobile
+        <button id="previewMobile" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+          <i class="fa-solid fa-mobile-screen text-xs"></i> Mobile
         </button>
       </div>
 
-      <!-- Action Buttons: Show Code & Download -->
-      <div class="flex items-center gap-2">
-        <button id="showCodeBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-code text-indigo-400"></i> Show Code
-        </button>
-        <button id="downloadBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition">
-          <i class="fa-solid fa-download"></i> Download HTML
-        </button>
-      </div>
+      <!-- Prominent Download Website Button -->
+      <button id="downloadBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition transform active:scale-95">
+        <i class="fa-solid fa-download text-sm"></i> Download Website
+      </button>
     </header>
 
-    <!-- Live Preview Container -->
-    <div id="previewContainer" class="flex-1 bg-slate-900/50 flex items-center justify-center p-0 md:p-4 overflow-hidden transition-all duration-300">
-      <div id="previewFrameWrapper" class="w-full h-full bg-white rounded-none md:rounded-xl shadow-2xl overflow-hidden border border-slate-800 transition-all duration-300">
+    <!-- Live Preview Iframe Container -->
+    <div id="previewContainer" class="flex-1 bg-slate-900/40 flex items-center justify-center p-0 md:p-5 overflow-hidden transition-all duration-300">
+      <div id="previewFrameWrapper" class="w-full h-full bg-white rounded-none md:rounded-2xl shadow-2xl overflow-hidden border border-slate-800 transition-all duration-300">
         <iframe id="livePreviewFrame" class="w-full h-full border-0 bg-white" title="Live Website Preview"></iframe>
       </div>
     </div>
   </main>
 
-  <!-- Show Code Modal -->
-  <div id="codeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-      <!-- Modal Header -->
-      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-code text-indigo-400"></i>
-          <h3 class="font-bold text-sm text-slate-200">Generated Single-File HTML Source Code</h3>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="copyCodeBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition">
-            <i class="fa-regular fa-copy"></i> Copy Code
-          </button>
-          <button id="closeModalBtn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      </div>
-      <!-- Modal Body (Code View) -->
-      <div class="flex-1 overflow-hidden p-4 bg-slate-950">
-        <textarea id="codeTextarea" class="w-full h-full bg-slate-950 text-indigo-200 font-mono text-xs resize-none focus:outline-none p-2 leading-relaxed" readonly></textarea>
-      </div>
-    </div>
-  </div>
-
   <!-- Toast Notification / Alert -->
   <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div id="toastContent" class="bg-slate-900 border border-slate-700 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-medium">
-      <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+    <div id="toastContent" class="bg-slate-900 border border-slate-700 text-slate-100 px-4.5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3.5 text-xs font-medium">
+      <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
       <span id="toastMessage">Success notification message</span>
     </div>
   </div>
 
   <!-- Application Logic -->
   <script>
-    // Initial Default HTML Template for the iframe preview
-    let currentHtmlCode = `<!DOCTYPE html>
+    // Initial Default HTML Template for the live preview
+    let currentHtmlCode = \`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -195,45 +221,42 @@
   <title>Welcome to AI Website Builder</title>
   <script src="https://cdn.tailwindcss.com"><\\/script>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white min-h-screen flex flex-col items-center justify-center p-6 text-center">
+<body class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-8 text-center">
   <div class="max-w-2xl mx-auto space-y-6">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-semibold">
-      <i class="fa-solid fa-wand-magic-sparkles"></i> Studio Preview Ready
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-bold shadow-lg">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Welcome! Your Preview is Ready
     </div>
-    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
-      Your Website Will Render Here
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">
+      Build Your Dream Website With AI
     </h1>
-    <p class="text-slate-400 text-base leading-relaxed">
-      Enter your Gemini API key on the left, type what you want to create (or use voice dictate), and click <strong class="text-indigo-300">Generate Website</strong>. Gemini will build a stunning Tailwind website for you in seconds!
+    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+      Paste your free Gemini API key on the left, pick a starter template or describe your website in plain English (or use voice dictation), and click <strong class="text-indigo-300">Create / Update Website</strong>!
     </p>
     <div class="pt-4 flex flex-wrap justify-center gap-3">
-      <div class="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
+      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
         <i class="fa-solid fa-bolt text-amber-400"></i> Instant Live Preview
       </div>
-      <div class="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
-        <i class="fa-solid fa-code text-indigo-400"></i> Full HTML Source Code
+      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
+        <i class="fa-solid fa-microphone text-rose-400"></i> Voice Dictation
       </div>
-      <div class="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
-        <i class="fa-solid fa-mobile-screen text-emerald-400"></i> Responsive Tailwind
+      <div class="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 shadow">
+        <i class="fa-solid fa-download text-emerald-400"></i> Easy Download
       </div>
     </div>
   </div>
 </body>
-</html>`;
-
-    // Conversation History Array for Gemini API context
-    let conversationHistory = [];
+</html>\`;
 
     // DOM Elements
     const apiKeyInput = document.getElementById('apiKeyInput');
     const toggleApiKeyVis = document.getElementById('toggleApiKeyVis');
     const apiKeyVisIcon = document.getElementById('apiKeyVisIcon');
-    const chatHistory = document.getElementById('chatHistory');
     const promptInput = document.getElementById('promptInput');
     const generateBtn = document.getElementById('generateBtn');
     const generateIcon = document.getElementById('generateIcon');
     const generateText = document.getElementById('generateText');
     const voiceBtn = document.getElementById('voiceBtn');
+    const voiceBtnText = document.getElementById('voiceBtnText');
     const micIcon = document.getElementById('micIcon');
     const recordingStatus = document.getElementById('recordingStatus');
     const livePreviewFrame = document.getElementById('livePreviewFrame');
@@ -241,15 +264,11 @@
     const previewMobile = document.getElementById('previewMobile');
     const previewContainer = document.getElementById('previewContainer');
     const previewFrameWrapper = document.getElementById('previewFrameWrapper');
-    const showCodeBtn = document.getElementById('showCodeBtn');
     const downloadBtn = document.getElementById('downloadBtn');
-    const codeModal = document.getElementById('codeModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const copyCodeBtn = document.getElementById('copyCodeBtn');
-    const codeTextarea = document.getElementById('codeTextarea');
     const toastNotification = document.getElementById('toastNotification');
     const toastMessage = document.getElementById('toastMessage');
     const toastIcon = document.getElementById('toastIcon');
+    const starterTemplateBtns = document.querySelectorAll('.starter-template-btn');
 
     // Load API Key from localStorage on startup
     const savedApiKey = localStorage.getItem('gemini_api_key');
@@ -276,43 +295,55 @@
     function showToast(message, type = 'success') {
       toastMessage.textContent = message;
       toastIcon.className = type === 'success' 
-        ? 'fa-solid fa-circle-check text-emerald-400 text-sm' 
-        : 'fa-solid fa-circle-exclamation text-rose-400 text-sm';
+        ? 'fa-solid fa-circle-check text-emerald-400 text-base' 
+        : 'fa-solid fa-circle-exclamation text-rose-400 text-base';
       toastNotification.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
       setTimeout(() => {
         toastNotification.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-      }, 3500);
+      }, 4000);
     }
 
-    // Render Initial HTML into Iframe
+    // Render HTML into Iframe with verification
     function updateIframe(html) {
-      currentHtmlCode = html;
-      const blob = new Blob([html], { type: 'text/html' });
+      let cleaned = html.trim();
+      
+      // Automatic cleaning of markdown backticks if present
+      if (cleaned.startsWith('\\\`\\\`\\\`')) {
+        cleaned = cleaned.replace(/^\\\`\\\`\\\`[a-z]*\\n?/i, '');
+        cleaned = cleaned.replace(/\\\`\\\`\\\`$/, '');
+        cleaned = cleaned.trim();
+      }
+
+      // Verify HTML starts with <!DOCTYPE html> and ends with </html>
+      if (!cleaned.toLowerCase().startsWith('<!doctype html>')) {
+        cleaned = '<!DOCTYPE html>\\n' + cleaned;
+      }
+      if (!cleaned.toLowerCase().endsWith('</html>')) {
+        cleaned = cleaned + '\\n</html>';
+      }
+
+      currentHtmlCode = cleaned;
+      const blob = new Blob([currentHtmlCode], { type: 'text/html;charset=utf-8' });
       livePreviewFrame.src = URL.createObjectURL(blob);
     }
+
+    // Initialize iframe preview
     updateIframe(currentHtmlCode);
 
-    // Append Chat Message to Left Panel
-    function appendChatBubble(sender, text) {
-      const isUser = sender === 'user';
-      const bubbleDiv = document.createElement('div');
-      bubbleDiv.className = `flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`;
-      
-      bubbleDiv.innerHTML = `
-        <div class="w-6 h-6 rounded-full ${isUser ? 'bg-indigo-500' : 'bg-purple-600'} flex items-center justify-center text-white shrink-0 font-bold text-[10px]">
-          ${isUser ? 'U' : 'AI'}
-        </div>
-        <div class="${isUser ? 'bg-indigo-600/30 border border-indigo-500/30 text-indigo-100' : 'bg-slate-800/80 border border-slate-700/60 text-slate-200'} rounded-xl p-3 max-w-[85%] leading-relaxed shadow-sm">
-          <p>${escapeHtml(text)}</p>
-        </div>
-      `;
-      chatHistory.appendChild(bubbleDiv);
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    // Starter Templates click handlers
+    starterTemplateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const templateType = btn.getAttribute('data-template');
+        if (templateType === 'bakery') {
+          promptInput.value = 'Create a stunning artisanal bakery website with hero banner, delicious pastry menu items with prices, customer reviews, and a contact ordering form.';
+        } else if (templateType === 'portfolio') {
+          promptInput.value = 'Create a sleek, modern personal portfolio website for a UI/UX designer and frontend developer with hero intro, projects showcase grid, skills badges, and contact section.';
+        } else if (templateType === 'fitness') {
+          promptInput.value = 'Create a high-energy fitness gym landing page with class schedule, trainer profiles, pricing membership tiers, and sign-up call to action.';
+        }
+        showToast('Starter template loaded into prompt!');
+      });
+    });
 
     // ==========================================================================
     // Voice Dictate (Speech Recognition Web Speech API)
@@ -331,6 +362,7 @@
         isRecording = true;
         recordingStatus.classList.remove('hidden');
         recordingStatus.classList.add('flex');
+        voiceBtnText.textContent = 'Listening... Click to Stop';
         micIcon.className = 'fa-solid fa-microphone-slash text-xs text-red-400';
       };
 
@@ -357,6 +389,7 @@
       isRecording = false;
       recordingStatus.classList.add('hidden');
       recordingStatus.classList.remove('flex');
+      voiceBtnText.textContent = 'Click to Speak (Voice)';
       micIcon.className = 'fa-solid fa-microphone text-xs';
     }
 
@@ -378,39 +411,31 @@
     });
 
     // ==========================================================================
-    // Gemini API Call with Model List ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'] and Fallback
+    // Gemini API Call with models ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'] and fallback
     // ==========================================================================
     async function callGeminiAPI(promptText) {
       const apiKey = apiKeyInput.value.trim();
       if (!apiKey) {
-        throw new Error('Please enter your Gemini API Key in the top header.');
+        throw new Error('Please enter your Gemini API Key first.');
       }
-
-      // Build conversation contents payload for Gemini REST API
-      const contents = [];
 
       const systemInstruction = `You are an expert AI Web Developer and UI/UX Designer.
 The user wants to generate or update a website.
 You must return ONLY raw complete single-file HTML code containing Tailwind CSS CDN (<script src="https://cdn.tailwindcss.com"></script>) and FontAwesome CDN if helpful.
 CRITICAL RULES:
-1. Return ONLY valid HTML code. No markdown code blocks (NO \`\`\`html or \`\`\`), no explanations, no conversational text before or after the HTML.
-2. The HTML must be fully self-contained, responsive, interactive (with embedded JavaScript if needed), and modern with gorgeous Tailwind styling.
-3. If the user is modifying or updating an existing website, incorporate their requested changes while keeping the high quality.`;
+1. Return ONLY valid HTML code. No markdown code blocks (NO \\\`\\\`\\\`html or \\\`\\\`\\\`), no explanations, no conversational text before or after the HTML.
+2. The HTML must start with <!DOCTYPE html> and end with </html>.
+3. The HTML must be fully self-contained, responsive, interactive, and modern with gorgeous Tailwind styling.
+4. If the user is modifying or updating an existing website, incorporate their requested changes.`;
 
-      for (const msg of conversationHistory) {
-        contents.push({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        });
-      }
-
-      const fullPrompt = `${systemInstruction}\n\nCURRENT HTML CODE:\n${currentHtmlCode}\n\nUSER REQUEST:\n${promptText}`;
-      contents.push({
+      const fullPrompt = `${systemInstruction}\\n\\nCURRENT HTML CODE:\\n${currentHtmlCode}\\n\\nUSER REQUEST:\\n${promptText}`;
+      
+      const contents = [{
         role: 'user',
         parts: [{ text: fullPrompt }]
-      });
+      }];
 
-      // Active Gemini 3 models list as requested
+      // Models list as requested
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
       let lastError = null;
 
@@ -444,22 +469,12 @@ CRITICAL RULES:
       throw lastError || new Error('All Gemini model fallbacks failed.');
     }
 
-    // Clean and extract HTML from Gemini response
-    function cleanHtmlOutput(rawText) {
-      let cleaned = rawText.trim();
-      if (cleaned.startsWith('```')) {
-        cleaned = cleaned.replace(/^```[a-z]*\n?/i, '');
-        cleaned = cleaned.replace(/```$/, '');
-        cleaned = cleaned.trim();
-      }
-      return cleaned;
-    }
-
     // Generate Button Click Event
     generateBtn.addEventListener('click', async () => {
       const promptText = promptInput.value.trim();
       if (!promptText) {
-        showToast('Please enter a prompt or website description.', 'error');
+        showToast('Please enter what you want to build or select a starter template.', 'error');
+        promptInput.focus();
         return;
       }
 
@@ -472,30 +487,20 @@ CRITICAL RULES:
 
       // UI Loading State
       generateBtn.disabled = true;
-      generateIcon.className = 'fa-solid fa-spinner fa-spin text-xs';
-      generateText.textContent = 'Generating Website...';
-
-      // Append User Prompt to Chat
-      appendChatBubble('user', promptText);
-      conversationHistory.push({ role: 'user', text: promptText });
-      promptInput.value = '';
+      generateIcon.className = 'fa-solid fa-spinner fa-spin text-base';
+      generateText.textContent = 'Creating Website...';
 
       try {
         const rawAiOutput = await callGeminiAPI(promptText);
-        const newHtml = cleanHtmlOutput(rawAiOutput);
-
-        updateIframe(newHtml);
-        appendChatBubble('ai', 'Successfully generated your website! Preview is live on the right panel.');
-        conversationHistory.push({ role: 'model', text: 'Generated HTML successfully.' });
-        showToast('Website generated successfully!');
+        updateIframe(rawAiOutput);
+        showToast('Website created successfully!');
       } catch (error) {
         console.error(error);
-        appendChatBubble('ai', 'Error generating website: ' + (error.message || 'Unknown error'));
         showToast('Generation failed: ' + (error.message || 'Check API Key'), 'error');
       } finally {
         generateBtn.disabled = false;
-        generateIcon.className = 'fa-solid fa-wand-magic-sparkles text-xs';
-        generateText.textContent = 'Generate Website';
+        generateIcon.className = 'fa-solid fa-wand-magic-sparkles text-base';
+        generateText.textContent = 'Create / Update Website';
       }
     });
 
@@ -511,51 +516,28 @@ CRITICAL RULES:
     // Preview Mode Toggle (Desktop vs Mobile)
     // ==========================================================================
     previewDesktop.addEventListener('click', () => {
-      previewDesktop.className = 'px-3 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
-      previewMobile.className = 'px-3 py-1 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition';
+      previewDesktop.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm';
+      previewMobile.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
       previewFrameWrapper.style.maxWidth = '100%';
       previewFrameWrapper.style.height = '100%';
       previewFrameWrapper.classList.remove('rounded-3xl', 'border-4', 'border-slate-700', 'shadow-2xl');
-      previewContainer.classList.add('p-0', 'md:p-4');
-      previewContainer.classList.remove('p-4');
+      previewContainer.classList.add('p-0', 'md:p-5');
+      previewContainer.classList.remove('p-5');
     });
 
     previewMobile.addEventListener('click', () => {
-      previewMobile.className = 'px-3 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white flex items-center gap-1.5 transition shadow-sm';
-      previewDesktop.className = 'px-3 py-1 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition';
+      previewMobile.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm';
+      previewDesktop.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
       previewFrameWrapper.style.maxWidth = '390px';
       previewFrameWrapper.style.height = '844px';
       previewFrameWrapper.classList.add('rounded-3xl', 'border-4', 'border-slate-700', 'shadow-2xl');
-      previewContainer.classList.remove('p-0', 'md:p-4');
-      previewContainer.classList.add('p-4');
+      previewContainer.classList.remove('p-0', 'md:p-5');
+      previewContainer.classList.add('p-5');
     });
 
     // ==========================================================================
-    // Show Code Modal & Download
+    // Download Website Button
     // ==========================================================================
-    showCodeBtn.addEventListener('click', () => {
-      codeTextarea.value = currentHtmlCode;
-      codeModal.classList.remove('hidden');
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-      codeModal.classList.add('hidden');
-    });
-
-    codeModal.addEventListener('click', (e) => {
-      if (e.target === codeModal) {
-        codeModal.classList.add('hidden');
-      }
-    });
-
-    copyCodeBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(currentHtmlCode).then(() => {
-        showToast('HTML code copied to clipboard!');
-      }).catch(err => {
-        showToast('Failed to copy code.', 'error');
-      });
-    });
-
     downloadBtn.addEventListener('click', () => {
       const blob = new Blob([currentHtmlCode], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
