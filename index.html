@@ -58,6 +58,12 @@
       <button id="genBtn" class="btn btn-create" onclick="generateSite()">Create Website</button>
     </div>
     <p id="status"></p>
+    <div style="flex:1;display:flex;flex-direction:column;min-height:130px;">
+      <label>AI Updates &amp; Suggestions</label>
+      <div id="aiFeed" style="flex:1;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;overflow-y:auto;font-size:0.82rem;line-height:1.5;display:flex;flex-direction:column;gap:8px;">
+        <div style="color:#94a3b8;">Hi! Describe your website above. After building, I will tell you what I created and suggest improvements.</div>
+      </div>
+    </div>
   </div>
 
   <div class="main">
@@ -117,6 +123,10 @@
         if (res.ok) {
           const data = await res.json();
           currentCode = data.html;
+          const feed = document.getElementById('aiFeed');
+          feed.innerHTML += '<div style="background:#1e293b;padding:7px 10px;border-radius:6px;border-left:3px solid #6366f1;color:#e2e8f0;"><b>You:</b> ' + userPrompt + '</div>';
+          feed.innerHTML += '<div style="background:#064e3b;padding:8px 10px;border-radius:6px;color:#d1fae5;"><b>AI:</b> ' + (data.summary || 'Okay, I have made these changes. Please verify it on the right!') + '</div>';
+          feed.scrollTop = feed.scrollHeight;
           document.getElementById('preview').srcdoc = data.html;
           document.getElementById('prompt').value = '';
           document.getElementById('prompt').placeholder = 'Tell AI what to change next (e.g. Change the menu)...';

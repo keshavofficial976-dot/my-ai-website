@@ -1,4 +1,5 @@
 import os
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -51,7 +52,6 @@ document.addEventListener('submit', async function(e) {{
     if (el.value) formData[label] = el.value;
   }});
 
-  /* 1. Save to Supabase database */
   try {{
     await fetch('https://supabase.co', {{
       method: 'POST',
@@ -68,7 +68,6 @@ document.addEventListener('submit', async function(e) {{
     }});
   }} catch (err) {{}}
 
-  /* 2. Send Email via FormSubmit if owner provided email */
   if (OWNER_EMAIL) {{
     try {{
       await fetch('https://formsubmit.co' + encodeURIComponent(OWNER_EMAIL), {{
@@ -82,7 +81,6 @@ document.addEventListener('submit', async function(e) {{
   const summary = Object.entries(formData).map(([k, v]) => k + ': ' + v).join('\\n');
   form.reset();
 
-  /* 3. Open WhatsApp to Owner if WhatsApp number provided */
   if (OWNER_PHONE) {{
     alert('Order saved! Opening WhatsApp to notify the business owner...');
     window.open('https://wa.me' + OWNER_PHONE + '?text=' + encodeURIComponent('New Website Order:\\n' + summary), '_blank');
@@ -100,22 +98,26 @@ def serve_home():
 @app.post("/api/generate")
 def generate_site(req: SiteRequest):
     instruction = (
-        "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-        "No markdown backticks, no explanations. All navigation links must use #section-id anchors, "
-        "and every Order / Contact / Booking form MUST be wrapped in a <form> tag with a <button type='submit'> button. "
-        + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
+        "You are a friendly AI web designer. Return a valid JSON object with EXACTLY two keys: "
+        "\"summary\" (a short friendly message saying what you built or changed, asking the user to verify it on the right, plus 2 quick suggestions for what they can improve next) "
+        "and \"html\" (the complete raw single-file HTML with clean internal CSS styling; all nav links must use #section-id anchors, and all order/contact forms must use <form> and <button type='submit'>). "
+        "Return ONLY raw JSON without markdown backticks. "
+        + (f"Existing HTML to update: {req.current_code}\nUser change request: " if req.current_code else "Create a complete responsive website for: ")
         + req.prompt
     )
     for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
             res = client.models.generate_content(model=model_name, contents=instruction)
-            html = res.text.replace("```html", "").replace("```", "").strip()
+            raw = res.text.replace("```json", "").replace("```html", "").replace("```", "").strip()
+            parsed = json.loads(raw)
+            html = parsed.get("html", "")
+            summary = parsed.get("summary", "Okay, I have made these changes! Please verify the preview on the right.")
             script = build_form_script(req.owner_email.strip(), req.owner_whatsapp.strip())
             if "</body>" in html:
                 html = html.replace("</body>", script + "\n</body>")
             else:
                 html += script
-            return {"html": html}
+            return {"html": html, "summary": summary}
         except Exception:
             continue
     raise HTTPException(status_code=503, detail="AI servers busy, please retry in a moment.")
