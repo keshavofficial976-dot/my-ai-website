@@ -16,7 +16,7 @@ class SiteRequest(BaseModel):
     prompt: str
     current_code: str = ""
 
-SAFE_PREVIEW_SCRIPT = """
+SUPABASE_FORM_SCRIPT = """
 <script>
 document.addEventListener('click', function(e) {
   const link = e.target.closest('a');
@@ -31,9 +31,37 @@ document.addEventListener('click', function(e) {
     }
   }
 });
-document.addEventListener('submit', function(e) {
+
+document.addEventListener('submit', async function(e) {
   e.preventDefault();
-  alert('Form submitted! (Preview Mode)');
+  const form = e.target;
+  const formData = {};
+  new FormData(form).forEach((val, key) => { formData[key || 'field'] = val; });
+  form.querySelectorAll('input, textarea, select').forEach((el, idx) => {
+    const label = el.name || el.id || el.placeholder || ('field_' + (idx + 1));
+    if (el.value) formData[label] = el.value;
+  });
+
+  try {
+    const res = await fetch('https://supabase.co', {
+      method: 'POST',
+      headers: {
+        'apikey': 'sb_publishable_ibTinPvnZJtclMvnxobMVw_LoMqeEpD',
+        'Authorization': 'Bearer sb_publishable_ibTinPvnZJtclMvnxobMVw_LoMqeEpD',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ site_name: document.title || 'Generated Website', form_data: formData })
+    });
+    if (res.ok) {
+      alert('Order / Inquiry sent and saved to database!');
+      form.reset();
+    } else {
+      alert('Submitted! (Check database permissions)');
+    }
+  } catch (err) {
+    alert('Order submitted!');
+  }
 });
 </script>
 """
@@ -46,7 +74,7 @@ def serve_home():
 def generate_site(req: SiteRequest):
     instruction = (
         "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-        "No markdown backticks, no explanations. All navigation links must use #section-id anchors. "
+        "No markdown backticks, no explanations. All navigation links must use #section-id anchors, and any order or contact form must use proper <form> and <input name='...'> tags. "
         + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
         + req.prompt
     )
@@ -55,9 +83,9 @@ def generate_site(req: SiteRequest):
             res = client.models.generate_content(model=model_name, contents=instruction)
             html = res.text.replace("```html", "").replace("```", "").strip()
             if "</body>" in html:
-                html = html.replace("</body>", SAFE_PREVIEW_SCRIPT + "\n</body>")
+                html = html.replace("</body>", SUPABASE_FORM_SCRIPT + "\n</body>")
             else:
-                html += SAFE_PREVIEW_SCRIPT
+                html += SUPABASE_FORM_SCRIPT
             return {"html": html}
         except Exception:
             continue
