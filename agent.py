@@ -13,8 +13,8 @@ from google.genai.errors import APIError
 load_dotenv()
 client = genai.Client()
 
-# Models to try in order if one hits a temporary 503 traffic spike
-MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]
+# Each model has its own separate Free Tier per-minute quota!
+MODELS = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
 
 # 2. Define Agent Tools (Windows-safe + File Reading + Permissions)
 def list_files(directory: str = ".") -> str:
@@ -57,11 +57,13 @@ def run_terminal_command(command: str) -> str:
     print(f"💻 Terminal Output:\n{output}")
     return output or "Command executed with no output."
 
-# 3. Flexible Push-to-Talk Voice Recording (Press Enter to Start, Enter to Stop)
-def record_voice(filename="command.wav", fs=16000):
-    input("\n🎙️ Press ENTER to START speaking...")
+# 3. Flexible Push-to-Talk Voice Recording (OR Type Text Directly!)
+def get_user_input(filename="command.wav", fs=16000):
+    typed = input("\n🎙️ Press ENTER to speak (or type your instruction and press ENTER): ").strip()
+    if typed:
+        return "text", typed
+
     print("🔴 Recording... Speak now! (Press ENTER again when finished)")
-    
     chunks = []
     def callback(indata, frames, time_info, status):
         chunks.append(indata.copy())
@@ -72,16 +74,16 @@ def record_voice(filename="command.wav", fs=16000):
     audio_data = np.concatenate(chunks, axis=0)
     write(filename, fs, audio_data)
     print("⏹️ Recording complete. Sending to Gemini...")
-    return filename
+    return "audio", filename
 
-# 4. Main Agent Loop with Automatic Fallback Across Models
+# 4. Main Agent Loop with Smart Token Memory & 429/503 Fallback
 def start_agent():
     config = types.GenerateContentConfig(
         system_instruction=(
             "You are an autonomous AI software engineer working alongside the user in VS Code on Windows. "
             "Use `list_files` and `read_code_file` to inspect existing code before making changes. "
             "Use `write_code_file` to create or edit files, and `run_terminal_command` ONLY with valid Windows commands "
-            "(never use Linux commands like `ls` or `rm -rf`). First briefly state what you heard the user ask for."
+            "(never use Linux commands like `ls`). First briefly state what you heard/read from the user."
         ),
         tools=[list_files, read_code_file, write_code_file, run_terminal_command],
     )
@@ -90,26 +92,34 @@ def start_agent():
     print("🤖 AI Cowork Agent Ready! (Press Ctrl+C to exit)")
 
     while True:
-        audio_path = record_voice()
-        with open(audio_path, "rb") as f:
-            audio_bytes = f.read()
+        mode, payload = get_user_input()
+        
+        if mode == "text":
+            user_message = [payload]
+        else:
+            with open(payload, "rb") as f:
+                audio_bytes = f.read()
+            user_message = [
+                types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"),
+                "Listen to my dictated instructions and execute them step by step."
+            ]
 
-        user_message = [
-            types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"),
-            "Listen to my dictated instructions and execute them step by step."
-        ]
-
-        # Try primary model first, automatically switch to backup models on 503
         for model_name in MODELS:
             try:
-                chat = client.chats.create(model=model_name, config=config, history=history)
+                # Keep only the last 6 turns so we never exceed the 250k tokens/min Free Tier limit
+                trimmed_history = history[-6:] if len(history) > 6 else history
+                chat = client.chats.create(model=model_name, config=config, history=trimmed_history)
                 response = chat.send_message(user_message)
-                history = chat.get_history()  # Save conversation memory across turns
+                
+                # Save a lightweight text summary to history instead of re-sending heavy audio bytes
+                history.append(types.Content(role="user", parts=[types.Part.from_text(text=payload if mode == "text" else "[User voice command executed]")]))
+                history.append(types.Content(role="model", parts=[types.Part.from_text(text=response.text or "Done.")]))
+                
                 print(f"\n🤖 Agent ({model_name}): {response.text}")
                 break
             except APIError as e:
-                if e.code == 503:
-                    print(f"⚠️ {model_name} is busy (503). Switching to backup model...")
+                if e.code in (429, 503):
+                    print(f"⚠️ {model_name} busy/rate-limited ({e.code}). Switching to backup model...")
                     time.sleep(1)
                 else:
                     print(f"❌ API Error on {model_name}: {e.message}")
