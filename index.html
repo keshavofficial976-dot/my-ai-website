@@ -38,7 +38,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Gemini 2.0 Flash
+            Gemini 3 Active
           </span>
         </div>
       </div>
@@ -378,7 +378,7 @@
     });
 
     // ==========================================================================
-    // Gemini API Call with Fallback and System Prompt
+    // Gemini API Call with Model List ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'] and Fallback
     // ==========================================================================
     async function callGeminiAPI(promptText) {
       const apiKey = apiKeyInput.value.trim();
@@ -389,7 +389,6 @@
       // Build conversation contents payload for Gemini REST API
       const contents = [];
 
-      // Add system or context guidance if needed
       const systemInstruction = `You are an expert AI Web Developer and UI/UX Designer.
 The user wants to generate or update a website.
 You must return ONLY raw complete single-file HTML code containing Tailwind CSS CDN (<script src="https://cdn.tailwindcss.com"></script>) and FontAwesome CDN if helpful.
@@ -398,7 +397,6 @@ CRITICAL RULES:
 2. The HTML must be fully self-contained, responsive, interactive (with embedded JavaScript if needed), and modern with gorgeous Tailwind styling.
 3. If the user is modifying or updating an existing website, incorporate their requested changes while keeping the high quality.`;
 
-      // Push history items
       for (const msg of conversationHistory) {
         contents.push({
           role: msg.role === 'user' ? 'user' : 'model',
@@ -406,15 +404,14 @@ CRITICAL RULES:
         });
       }
 
-      // Add current request with current HTML code context
       const fullPrompt = `${systemInstruction}\n\nCURRENT HTML CODE:\n${currentHtmlCode}\n\nUSER REQUEST:\n${promptText}`;
       contents.push({
         role: 'user',
         parts: [{ text: fullPrompt }]
       });
 
-      // Try primary model first, with fallback
-      const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+      // Active Gemini 3 models list as requested
+      const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash'];
       let lastError = null;
 
       for (const model of models) {
@@ -450,7 +447,6 @@ CRITICAL RULES:
     // Clean and extract HTML from Gemini response
     function cleanHtmlOutput(rawText) {
       let cleaned = rawText.trim();
-      // Remove markdown code blocks if any slipped through
       if (cleaned.startsWith('```')) {
         cleaned = cleaned.replace(/^```[a-z]*\n?/i, '');
         cleaned = cleaned.replace(/```$/, '');
