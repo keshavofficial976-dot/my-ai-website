@@ -47,6 +47,10 @@
         <button class="chip" onclick="setPrompt('Build a clean personal portfolio website with projects and contact form')">Portfolio</button>
         <button class="chip" onclick="setPrompt('Build a fitness gym landing page with membership pricing and trainer cards')">Fitness Gym</button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="ownerEmail" type="email" placeholder="Your Email (for orders)" style="flex:1;font-size:0.8rem;padding:8px;">
+        <input id="ownerWhatsapp" type="tel" placeholder="WhatsApp No. (optional)" style="flex:1;font-size:0.8rem;padding:8px;">
+      </div>
       <textarea id="prompt" rows="4" placeholder="Speak or type what website you want..."></textarea>
     </div>
     <div class="actions">
@@ -108,7 +112,7 @@
         const res = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: userPrompt, current_code: currentCode })
+          body: JSON.stringify({ prompt: userPrompt, current_code: currentCode, owner_email: document.getElementById('ownerEmail').value, owner_whatsapp: document.getElementById('ownerWhatsapp').value })
         });
         if (res.ok) {
           const data = await res.json();

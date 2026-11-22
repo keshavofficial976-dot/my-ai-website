@@ -15,54 +15,81 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 class SiteRequest(BaseModel):
     prompt: str
     current_code: str = ""
+    owner_email: str = ""
+    owner_whatsapp: str = ""
 
-SUPABASE_FORM_SCRIPT = """
+def build_form_script(owner_email: str, owner_whatsapp: str) -> str:
+    clean_phone = "".join(ch for ch in owner_whatsapp if ch.isdigit())
+    if len(clean_phone) == 10:
+        clean_phone = "91" + clean_phone
+    return f"""
 <script>
-document.addEventListener('click', function(e) {
+const OWNER_EMAIL = {owner_email!r};
+const OWNER_PHONE = {clean_phone!r};
+
+document.addEventListener('click', function(e) {{
   const link = e.target.closest('a');
-  if (link) {
+  if (link) {{
     const href = link.getAttribute('href') || '';
-    if (href.startsWith('#') && href.length > 1) {
+    if (href.startsWith('#') && href.length > 1) {{
       e.preventDefault();
       const target = document.querySelector(href);
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
-    } else {
+      if (target) target.scrollIntoView({{ behavior: 'smooth' }});
+    }} else if (!href.startsWith('https://wa.me')) {{
       e.preventDefault();
-    }
-  }
-});
+    }}
+  }}
+}});
 
-document.addEventListener('submit', async function(e) {
+document.addEventListener('submit', async function(e) {{
   e.preventDefault();
   const form = e.target;
-  const formData = {};
-  new FormData(form).forEach((val, key) => { formData[key || 'field'] = val; });
-  form.querySelectorAll('input, textarea, select').forEach((el, idx) => {
-    const label = el.name || el.id || el.placeholder || ('field_' + (idx + 1));
+  const formData = {{}};
+  form.querySelectorAll('input, textarea, select').forEach((el, idx) => {{
+    if (el.type === 'submit' || el.type === 'button') return;
+    const label = el.name || el.id || el.placeholder || ('Field_' + (idx + 1));
     if (el.value) formData[label] = el.value;
-  });
+  }});
 
-  try {
-    const res = await fetch('https://supabase.co', {
+  /* 1. Save to Supabase database */
+  try {{
+    await fetch('https://supabase.co', {{
       method: 'POST',
-      headers: {
+      headers: {{
         'apikey': 'sb_publishable_ibTinPvnZJtclMvnxobMVw_LoMqeEpD',
         'Authorization': 'Bearer sb_publishable_ibTinPvnZJtclMvnxobMVw_LoMqeEpD',
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ site_name: document.title || 'Generated Website', form_data: formData })
-    });
-    if (res.ok) {
-      alert('Order / Inquiry sent and saved to database!');
-      form.reset();
-    } else {
-      alert('Submitted! (Check database permissions)');
-    }
-  } catch (err) {
-    alert('Order submitted!');
-  }
-});
+      }},
+      body: JSON.stringify({{
+        site_name: (document.title || 'Website') + (OWNER_EMAIL ? ' (' + OWNER_EMAIL + ')' : ''),
+        form_data: formData
+      }})
+    }});
+  }} catch (err) {{}}
+
+  /* 2. Send Email via FormSubmit if owner provided email */
+  if (OWNER_EMAIL) {{
+    try {{
+      await fetch('https://formsubmit.co' + encodeURIComponent(OWNER_EMAIL), {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json', 'Accept': 'application/json' }},
+        body: JSON.stringify({{ _subject: 'New Order / Inquiry from ' + (document.title || 'Your Website'), ...formData }})
+      }});
+    }} catch (err) {{}}
+  }}
+
+  const summary = Object.entries(formData).map(([k, v]) => k + ': ' + v).join('\\n');
+  form.reset();
+
+  /* 3. Open WhatsApp to Owner if WhatsApp number provided */
+  if (OWNER_PHONE) {{
+    alert('Order saved! Opening WhatsApp to notify the business owner...');
+    window.open('https://wa.me' + OWNER_PHONE + '?text=' + encodeURIComponent('New Website Order:\\n' + summary), '_blank');
+  }} else {{
+    alert('Order / Inquiry sent successfully!');
+  }}
+}});
 </script>
 """
 
@@ -74,7 +101,8 @@ def serve_home():
 def generate_site(req: SiteRequest):
     instruction = (
         "Return ONLY raw valid single-file HTML with clean internal CSS styling. "
-        "No markdown backticks, no explanations. All navigation links must use #section-id anchors, and any order or contact form must use proper <form> and <input name='...'> tags. "
+        "No markdown backticks, no explanations. All navigation links must use #section-id anchors, "
+        "and every Order / Contact / Booking form MUST be wrapped in a <form> tag with a <button type='submit'> button. "
         + (f"Update this HTML: {req.current_code} based on: " if req.current_code else "Create a complete responsive website for: ")
         + req.prompt
     )
@@ -82,10 +110,11 @@ def generate_site(req: SiteRequest):
         try:
             res = client.models.generate_content(model=model_name, contents=instruction)
             html = res.text.replace("```html", "").replace("```", "").strip()
+            script = build_form_script(req.owner_email.strip(), req.owner_whatsapp.strip())
             if "</body>" in html:
-                html = html.replace("</body>", SUPABASE_FORM_SCRIPT + "\n</body>")
+                html = html.replace("</body>", script + "\n</body>")
             else:
-                html += SUPABASE_FORM_SCRIPT
+                html += script
             return {"html": html}
         except Exception:
             continue
