@@ -1,5 +1,6 @@
 import os
 import json
+from typing import List, Dict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -13,8 +14,9 @@ client = genai.Client()
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-class SiteRequest(BaseModel):
-    prompt: str
+class ChatRequest(BaseModel):
+    message: str
+    history: List[Dict[str, str]] = []
     current_code: str = ""
     owner_email: str = ""
     owner_whatsapp: str = ""
@@ -96,28 +98,33 @@ def serve_home():
     return FileResponse("index.html")
 
 @app.post("/api/generate")
-def generate_site(req: SiteRequest):
+def chat_or_build(req: ChatRequest):
+    recent_chat = "\n".join([f"{m['role']}: {m['text']}" for m in req.history[-8:]])
     instruction = (
-        "You are a friendly AI web designer. Return a valid JSON object with EXACTLY two keys: "
-        "\"summary\" (a short friendly message saying what you built or changed, asking the user to verify it on the right, plus 2 quick suggestions for what they can improve next) "
-        "and \"html\" (the complete raw single-file HTML with clean internal CSS styling; all nav links must use #section-id anchors, and all order/contact forms must use <form> and <button type='submit'>). "
-        "Return ONLY raw JSON without markdown backticks. "
-        + (f"Existing HTML to update: {req.current_code}\nUser change request: " if req.current_code else "Create a complete responsive website for: ")
-        + req.prompt
+        "You are a friendly, interactive two-way AI Web Designer co-pilot collaborating with the user like a human partner. "
+        "Decide whether the user is asking a question/chatting OR wants to create/update the website.\n"
+        "Return ONLY a raw JSON object (no markdown backticks) with:\n"
+        "1. \"reply\": Your natural conversational response (if you built/edited the site, say what you changed, ask them to verify it on the right, and propose 1-2 helpful next ideas; if they are just chatting/asking advice, answer helpfully and ask how they'd like to proceed).\n"
+        "2. \"html\": If creating or updating the website, provide the COMPLETE valid single-file HTML with clean internal CSS (all nav links must use #section-id, all forms must use <form> and <button type='submit'>). If the user is only asking a question and no website change was requested, set \"html\" to \"\".\n\n"
+        f"Conversation so far:\n{recent_chat}\n"
+        f"Current Website HTML:\n{req.current_code if req.current_code else '(None yet)'}\n\n"
+        f"User's latest message: {req.message}"
     )
+
     for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
             res = client.models.generate_content(model=model_name, contents=instruction)
             raw = res.text.replace("```json", "").replace("```html", "").replace("```", "").strip()
             parsed = json.loads(raw)
-            html = parsed.get("html", "")
-            summary = parsed.get("summary", "Okay, I have made these changes! Please verify the preview on the right.")
-            script = build_form_script(req.owner_email.strip(), req.owner_whatsapp.strip())
-            if "</body>" in html:
-                html = html.replace("</body>", script + "\n</body>")
-            else:
-                html += script
-            return {"html": html, "summary": summary}
+            reply = parsed.get("reply", "Done! Let me know what you'd like to adjust next.")
+            html = parsed.get("html", "").strip()
+            if html:
+                script = build_form_script(req.owner_email.strip(), req.owner_whatsapp.strip())
+                if "</body>" in html:
+                    html = html.replace("</body>", script + "\n</body>")
+                else:
+                    html += script
+            return {"reply": reply, "html": html}
         except Exception:
             continue
     raise HTTPException(status_code=503, detail="AI servers busy, please retry in a moment.")

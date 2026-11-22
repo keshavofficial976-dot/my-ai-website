@@ -3,85 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Website Builder</title>
+  <title>AI Website Co-Pilot</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
-    .sidebar { width: 360px; min-width: 320px; background: #1e293b; border-right: 1px solid #334155; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .sidebar { width: 400px; min-width: 340px; background: #1e293b; border-right: 1px solid #334155; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
     .header { display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.25rem; color: #818cf8; }
-    .key-link { font-size: 0.75rem; background: #334155; color: #a5b4fc; text-decoration: none; padding: 6px 10px; border-radius: 6px; }
-    label { font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 6px; font-weight: 600; }
-    input, textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; outline: none; }
-    input:focus, textarea:focus { border-color: #6366f1; }
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-    .chip { background: #334155; color: #e2e8f0; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    .header h1 { font-size: 1.15rem; color: #818cf8; }
+    .owner-row { display: flex; gap: 6px; }
+    .owner-row input { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.78rem; outline: none; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { background: #334155; color: #e2e8f0; border: none; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; cursor: pointer; }
     .chip:hover { background: #475569; }
-    .actions { display: flex; gap: 10px; }
-    .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
-    .btn-mic { background: #334155; color: #fff; }
+    .chat-box { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.84rem; line-height: 1.5; }
+    .msg { padding: 9px 12px; border-radius: 10px; max-width: 92%; word-wrap: break-word; }
+    .msg-user { align-self: flex-end; background: #4f46e5; color: #fff; border-bottom-right-radius: 2px; }
+    .msg-ai { align-self: flex-start; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-bottom-left-radius: 2px; }
+    .input-area { display: flex; flex-direction: column; gap: 8px; }
+    textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; resize: none; }
+    textarea:focus { border-color: #6366f1; }
+    .actions { display: flex; gap: 8px; }
+    .btn { padding: 10px 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+    .btn-mic { background: #334155; color: #fff; flex: 1; }
     .btn-mic:hover { background: #475569; }
-    .btn-create { flex: 2; background: #4f46e5; color: #fff; }
-    .btn-create:hover { background: #4338ca; }
-    .btn-create:disabled { opacity: 0.6; cursor: wait; }
-    #status { font-size: 0.82rem; color: #38bdf8; min-height: 20px; }
+    .btn-send { background: #4f46e5; color: #fff; flex: 2; }
+    .btn-send:hover { background: #4338ca; }
+    .btn-send:disabled { opacity: 0.6; cursor: wait; }
     .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
-    .topbar { height: 56px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-download { background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
-    .btn-download:hover { background: #059669; }
+    .topbar { height: 54px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+    .top-btns { display: flex; gap: 8px; }
+    .btn-reset { background: #334155; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-download { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
     iframe { flex: 1; width: 100%; border: none; background: #fff; }
-    @media (max-width: 768px) { body { flex-direction: column; overflow: auto; height: auto; } .sidebar { width: 100%; } .main { height: 80vh; } }
+    @media (max-width: 768px) { body { flex-direction: column; overflow: auto; height: auto; } .sidebar { width: 100%; height: 65vh; } .main { height: 70vh; } }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <div class="header">
-      <h1>AI Website Builder</h1>
-      
+      <h1>AI Website Co-Pilot</h1>
+      <span style="font-size:0.74rem;color:#34d399;">● Two-Way Live</span>
     </div>
-    
-    <div>
-      <label>2. Pick a Quick Idea or Describe Yours</label>
-      <div class="chips">
-        <button class="chip" onclick="setPrompt('Build a modern bakery website with menu items, photos, and an order form')">Bakery</button>
-        <button class="chip" onclick="setPrompt('Build a clean personal portfolio website with projects and contact form')">Portfolio</button>
-        <button class="chip" onclick="setPrompt('Build a fitness gym landing page with membership pricing and trainer cards')">Fitness Gym</button>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="ownerEmail" type="email" placeholder="Your Email (for orders)" style="flex:1;font-size:0.8rem;padding:8px;">
-        <input id="ownerWhatsapp" type="tel" placeholder="WhatsApp No. (optional)" style="flex:1;font-size:0.8rem;padding:8px;">
-      </div>
-      <textarea id="prompt" rows="4" placeholder="Speak or type what website you want..."></textarea>
+
+    <div class="owner-row">
+      <input id="ownerEmail" type="email" placeholder="Your Email (for orders)">
+      <input id="ownerWhatsapp" type="tel" placeholder="WhatsApp No.">
     </div>
-    <div class="actions">
-      <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
-      <button id="genBtn" class="btn btn-create" onclick="generateSite()">Create Website</button>
+
+    <div class="chips">
+      <button class="chip" onclick="quickSend('Build a modern bakery website with menu and order form')">Bakery</button>
+      <button class="chip" onclick="quickSend('Build a travel agency website with 6D/5N packages')">Travel</button>
+      <button class="chip" onclick="quickSend('What sections should I add to get more customers?')">Ask AI Ideas</button>
     </div>
-    <p id="status"></p>
-    <div style="flex:1;display:flex;flex-direction:column;min-height:130px;">
-      <label>AI Updates &amp; Suggestions</label>
-      <div id="aiFeed" style="flex:1;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;overflow-y:auto;font-size:0.82rem;line-height:1.5;display:flex;flex-direction:column;gap:8px;">
-        <div style="color:#94a3b8;">Hi! Describe your website above. After building, I will tell you what I created and suggest improvements.</div>
+
+    <div class="chat-box" id="chatBox">
+      <div class="msg msg-ai">Hi! Tell me what website you want to build, or ask me for design ideas—we can chat back and forth as I build and update your site on the right!</div>
+    </div>
+
+    <div class="input-area">
+      <textarea id="prompt" rows="2" placeholder="Chat with AI or say 'Change the menu' (Press Enter to send)..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <div class="actions">
+        <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
+        <button id="sendBtn" class="btn btn-send" onclick="sendMessage()">Send</button>
       </div>
     </div>
   </div>
 
   <div class="main">
     <div class="topbar">
-      <span>Live Website Preview</span>
-      <div style="display:flex;gap:8px;"><button onclick="location.reload()" style="background:#334155;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;">New Site</button><button class="btn-download" onclick="downloadSite()">Download Website</button></div>
+      <span style="font-size:0.88rem;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
+      <div class="top-btns">
+        <button class="btn-reset" onclick="location.reload()">New Site</button>
+        <button class="btn-download" onclick="downloadSite()">Download Website</button>
+      </div>
     </div>
-    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Your Website Will Appear Here</h2><p>2. Click Bakery (or Speak/Type your idea)<br>3. Click Create Website</p></div></body></html>"></iframe>
+    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Your Live Website Preview</h2><p>Chat with the AI on the left—ask for ideas or tell it what to build!</p></div></body></html>"></iframe>
   </div>
 
   <script>
-    const keyInput = document.getElementById('apiKey');
-    // localStorage.getItem('gemini_key') || '';
-    //('input', () => localStorage.setItem('gemini_key', keyInput.value.trim()));
     let currentCode = '';
+    let chatHistory = [];
 
-    function setPrompt(text) {
+    function appendMsg(role, text) {
+      const box = document.getElementById('chatBox');
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-ai');
+      div.textContent = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+      chatHistory.push({ role, text });
+    }
+
+    function quickSend(text) {
       document.getElementById('prompt').value = text;
+      sendMessage();
     }
 
     function startVoice() {
@@ -91,54 +106,51 @@
       const btn = document.getElementById('micBtn');
       btn.textContent = 'Listening...';
       rec.onresult = (e) => {
-        document.getElementById('prompt').value = e.results[0][0].transcript;
+        document.getElementById('prompt').value = e.results.at(0).at(0).transcript;
       };
-      rec.onend = () => {
-        btn.textContent = 'Speak';
-      };
+      rec.onend = () => { btn.textContent = 'Speak'; };
       rec.start();
     }
 
-    async function generateSite() {
-      
-      const userPrompt = document.getElementById('prompt').value.trim();
-      const status = document.getElementById('status');
-      const btn = document.getElementById('genBtn');
-      
-      if (!userPrompt) return alert('Please speak or type what website you want.');
+    async function sendMessage() {
+      const box = document.getElementById('prompt');
+      const text = box.value.trim();
+      const btn = document.getElementById('sendBtn');
+      if (!text) return;
 
+      box.value = '';
+      appendMsg('user', text);
       btn.disabled = true;
-      btn.textContent = 'Building...';
-      status.textContent = 'Creating your website...';
-
-      const instruction = 'Return ONLY raw valid single-file HTML with clean internal CSS styling. No markdown backticks, no explanations. ' +
-        (currentCode ? 'Update this existing HTML: ' + currentCode + ' based on: ' : 'Create a complete responsive modern website for: ') + userPrompt;
+      btn.textContent = 'Thinking...';
 
       try {
         const res = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: userPrompt, current_code: currentCode, owner_email: document.getElementById('ownerEmail').value, owner_whatsapp: document.getElementById('ownerWhatsapp').value })
+          body: JSON.stringify({
+            message: text,
+            history: chatHistory,
+            current_code: currentCode,
+            owner_email: document.getElementById('ownerEmail').value,
+            owner_whatsapp: document.getElementById('ownerWhatsapp').value
+          })
         });
         if (res.ok) {
           const data = await res.json();
-          currentCode = data.html;
-          const feed = document.getElementById('aiFeed');
-          feed.innerHTML += '<div style="background:#1e293b;padding:7px 10px;border-radius:6px;border-left:3px solid #6366f1;color:#e2e8f0;"><b>You:</b> ' + userPrompt + '</div>';
-          feed.innerHTML += '<div style="background:#064e3b;padding:8px 10px;border-radius:6px;color:#d1fae5;"><b>AI:</b> ' + (data.summary || 'Okay, I have made these changes. Please verify it on the right!') + '</div>';
-          feed.scrollTop = feed.scrollHeight;
-          document.getElementById('preview').srcdoc = data.html;
-          document.getElementById('prompt').value = '';
-          document.getElementById('prompt').placeholder = 'Tell AI what to change next (e.g. Change the menu)...';
-          status.textContent = 'Website ready! Type or speak any changes above and click Update Website.';
-          btn.disabled = false;
-          btn.textContent = 'Update Website';
-          return;
+          appendMsg('ai', data.reply);
+          if (data.html) {
+            currentCode = data.html;
+            document.getElementById('preview').srcdoc = data.html;
+          }
+        } else {
+          appendMsg('ai', 'Sorry, the AI server is busy right now—please try sending that again!');
         }
-      } catch (e) {}
-      status.textContent = 'Could not connect. Check your API key and try again.';
+      } catch (e) {
+        appendMsg('ai', 'Connection error—please check your internet and try again.');
+      }
+
       btn.disabled = false;
-      btn.textContent = 'Create Website';
+      btn.textContent = 'Send';
     }
 
     function downloadSite() {
