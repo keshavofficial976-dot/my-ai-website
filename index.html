@@ -97,7 +97,7 @@
       const userPrompt = document.getElementById('prompt').value.trim();
       const status = document.getElementById('status');
       const btn = document.getElementById('genBtn');
-      if (!key) return alert('Please paste your free Gemini API key first.');
+      if (!key.startsWith('AIza')) return alert('That does not look like a Gemini key! A Gemini key always starts with AIzaSy... (from ://google.com).');
       if (!userPrompt) return alert('Please speak or type what website you want.');
 
       btn.disabled = true;
