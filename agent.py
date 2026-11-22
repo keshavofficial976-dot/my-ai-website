@@ -12,7 +12,7 @@ from google.genai.errors import APIError
 
 # 1. Load API Key & Initialize Gemini Client (15s timeout so it never hangs silently)
 load_dotenv()
-client = genai.Client(http_options=types.HttpOptions(timeout=15000))
+client = genai.Client(http_options=types.HttpOptions(timeout=60000))
 
 # Put the fastest, lowest-congestion model first!
 MODELS = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash"]
