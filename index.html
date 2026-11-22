@@ -125,7 +125,7 @@
           btn.disabled = false;
           btn.textContent = 'Update Website';
           return;
-        } catch (e) {}
+        } catch (e) { status.textContent = e.message; }
       }
 
       status.textContent = 'Could not connect. Check your API key and try again.';
