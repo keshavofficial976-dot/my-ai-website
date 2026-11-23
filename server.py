@@ -214,31 +214,38 @@ def chat_or_build(req: ChatRequest):
     raise HTTPException(status_code=503, detail="AI servers busy, please retry in a moment.")
 
 @app.post("/api/agent/plan")
-def plan_agent_task(req: AgentPlanRequest):
-    prompt = (
-        "You are an autonomous Code & Desktop Automation Agent (like Claude Code + Windows Desktop Operator). "
-        "Break the user's request into safe, clear, sequential steps. "
-        "Allowed actions: 'write_file' (target=filename, content=full file text), "
-        "'run_cmd' (target=shell command), 'open_app' (target=app name like notepad, calc, chrome, explorer), "
-        "'type_text' (target=text to type into active window).\n"
-        "Return ONLY raw JSON (no markdown) with keys: 'reply' (friendly explanation) and "
-        "'steps' (list of objects with 'action', 'target', 'content', 'description').\n\n"
-        f"User task: {req.task}"
+def plan_agent_tasks(req: AgentPlanRequest):
+    is_windows = (os.name == "nt")
+    env_info = (
+        "Running LOCALLY on Windows: you CAN use open_app (e.g. notepad, calc, chrome) and type_text."
+        if is_windows else
+        "Running on a CLOUD Linux server (Render): NEVER use open_app or Windows GUI commands like notepad/tkinter, and NEVER write scripts that block on input(). Instead, write clean standalone files or Python scripts and offer clear instructions."
     )
-    for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash"]:
+    recent_chat = "\n".join([f"{m.get('role', 'user')}: {m.get('text', '')}" for m in req.history[-10:]])
+    existing_files = [f for f in os.listdir(".") if os.path.isfile(f) and not f.startswith(".")]
+
+    prompt = (
+        "You are an elite, deeply knowledgeable Senior AI Software Architect and Autonomous Agent (like Claude Code). "
+        "Carefully read the conversation history and existing workspace files so you remember all prior context, filenames, and user goals.\n"
+        f"Environment: {env_info}\n"
+        f"Existing files in workspace: {existing_files}\n"
+        f"Recent conversation history:\n{recent_chat}\n\n"
+        "Return ONLY raw JSON (no markdown backticks) with:\n"
+        "1. \"reply\": A smart, clear, helpful explanation referencing prior context, confirming what you created or updated, and suggesting the best next step.\n"
+        "2. \"steps\": A list of step objects, each with \"action\" (write_file | run_cmd | open_app | type_text), \"target\" (filename, command, app, or text), and \"content\" (full file contents for write_file, else empty string). Set steps to [] if the user is only asking a question.\n\n"
+        f"User request: {req.goal}"
+    )
+    for model_name in ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]:
         try:
             res = client.models.generate_content(model=model_name, contents=prompt)
             raw = res.text.replace("```json", "").replace("```", "").strip()
             parsed = json.loads(raw)
-            _, checker_info = run_checker_ai("automation plan", req.task, json.dumps(parsed.get("steps", [])))
-            return {
-                "reply": parsed.get("reply", "Here is the automation plan. Approve each step to execute:"),
-                "steps": parsed.get("steps", []),
-                "verified_by": checker_info
-            }
+            checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.goal)
+            final_plan = json.loads(checked)
+            return {"reply": final_plan.get("reply", "Plan ready."), "steps": final_plan.get("steps", []), "checker": badge}
         except Exception:
             continue
-    raise HTTPException(status_code=503, detail="Could not generate agent plan.")
+    raise HTTPException(status_code=503, detail="Agent planner busy, please retry.")
 
 @app.post("/api/agent/execute")
 def execute_agent_step(step: AgentStepRequest):
