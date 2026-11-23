@@ -56,7 +56,8 @@ def call_groq_builtin(prompt: str) -> dict:
         ],
     }).encode("utf-8")
     req = urllib.request.Request(
-        "https://groq.com",
+        "https://" + "api.groq.com" + "/openai/v1/chat/completions",
+
         data=body,
         headers={
             "Authorization": f"Bearer {gk}",
