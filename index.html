@@ -323,7 +323,7 @@
                 appendAgentSteps(data.steps);
               }
             } else {
-              appendMsg('ai', 'Could not create automation plan—please retry.');
+              const err = await res.json().catch(() => ({})); appendMsg('ai', 'Server diagnostic: ' + (err.detail || res.status));
             }
           }
         } catch (err) {
