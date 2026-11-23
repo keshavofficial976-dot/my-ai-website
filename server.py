@@ -82,13 +82,41 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
             last_err = f"{m}: {e}"
     raise HTTPException(status_code=503, detail=f"Groq diagnostic: {last_err}")
 
+def call_groq_fast(prompt: str) -> tuple[dict, str]:
+    gk = os.getenv("GROQ_API_KEY", "").strip()
+    if not gk:
+        raise HTTPException(status_code=503, detail="GROQ_API_KEY missing in Render")
+    headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
+    endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
+    last_err = None
+    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]:
+        payload = {
+            "model": m,
+            "max_tokens": 3500,
+            "messages": [
+                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown."},
+                {"role": "user", "content": prompt}
+            ],
+        }
+        req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=7) as resp:
+                raw = json.loads(resp.read().decode("utf-8"))
+                content = raw.get("choices").pop(0).get("message").get("content")
+                return parse_loose_json(content), f"Maker: Groq {m} | Verified"
+        except urllib.error.HTTPError as he:
+            err_txt = he.read().decode("utf-8", errors="ignore")[:150]
+            last_err = f"{m} HTTP {he.code}: {err_txt}"
+        except Exception as e:
+            last_err = f"{m}: {e}"
+    raise HTTPException(status_code=503, detail=f"Groq diagnostic: {last_err}")
+
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     if not img_data:
         return call_groq_fast(prompt)
-
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not gemini_key:
-        raise HTTPException(status_code=503, detail="GEMINI_API_KEY missing for image analysis")
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY missing")
     client = genai.Client(api_key=gemini_key)
     contents = [prompt, types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime)]
     try:
@@ -101,12 +129,6 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Gemini Vision error: {e}")
 
-    else:
-        errors.append("GEMINI_API_KEY missing")
-
-    raise HTTPException(status_code=503, detail=" | ".join(errors))
-
-@app.get("/api/health")
 def health():
     return {
         "status": "awake",
