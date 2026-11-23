@@ -43,12 +43,9 @@ class AgentOut(BaseModel):
     reply: str
     steps: List[AgentStep]
 
-def call_groq_builtin(prompt: str) -> dict:
-    gk = os.getenv("GROQ_API_KEY", "").strip()
-    if not gk:
-        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
+def call_openai_compat(url: str, key: str, model: str, prompt: str) -> dict:
     body = json.dumps({
-        "model": "llama-3.3-70b-versatile",
+        "model": model,
         "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": "Always respond with a valid JSON object matching the requested keys."},
@@ -56,20 +53,32 @@ def call_groq_builtin(prompt: str) -> dict:
         ],
     }).encode("utf-8")
     req = urllib.request.Request(
-        "https://" + "://groq.com" + "/openai" + "/v1/chat/completions",
-
-
+        url,
         data=body,
-        headers={
-            "Authorization": f"Bearer {gk}",
-            "Content-Type": "application/json",
-            "User-Agent": "AI-Studio-Agent/1.0"
-        },
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"},
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=25) as resp:
         raw = json.loads(resp.read().decode("utf-8"))
         return json.loads(raw["choices"][0]["message"]["content"])
+
+def call_groq_builtin(prompt: str) -> dict:
+    gk = os.getenv("GROQ_API_KEY", "").strip()
+    if gk:
+        try:
+            endpoint = "".join(["https://", "://groq.com", "/openai/v1/chat/completions"])
+            return call_openai_compat(endpoint, gk, "llama-3.3-70b-versatile", prompt)
+        except Exception as e1:
+            ork = os.getenv("OPENROUTER_API_KEY", "").strip()
+            if ork:
+                or_url = "".join(["https://", "openrouter.ai", "/api/v1/chat/completions"])
+                return call_openai_compat(or_url, ork, "deepseek/deepseek-chat-v3-0324:free", prompt)
+            raise e1
+    ork = os.getenv("OPENROUTER_API_KEY", "").strip()
+    if ork:
+        or_url = "".join(["https://", "openrouter.ai", "/api/v1/chat/completions"])
+        return call_openai_compat(or_url, ork, "deepseek/deepseek-chat-v3-0324:free", prompt)
+    raise RuntimeError("No GROQ_API_KEY or OPENROUTER_API_KEY set")
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     errors = []
