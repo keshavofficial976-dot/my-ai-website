@@ -44,19 +44,18 @@ class AgentOut(BaseModel):
     reply: str
     steps: List[AgentStep]
 
-def call_groq_fast(prompt: str) -> dict:
+def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
         raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in ["meta-llama/llama-4-scout-17b-16e-instruct", "openai/gpt-oss-120b", "qwen/qwen3-32b"]:
-
+    # Active Groq Developer/Free tier models (500-1000 tokens/sec)
+    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]:
         body = json.dumps({
             "model": m,
-            
             "messages": [
-                {"role": "system", "content": "Always respond with a valid JSON object matching the requested keys."},
+                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown fences."},
                 {"role": "user", "content": prompt}
             ],
         }).encode("utf-8")
@@ -67,9 +66,11 @@ def call_groq_fast(prompt: str) -> dict:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=7) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
-                return json.loads(raw["choices"][0]["message"]["content"])
+                txt = raw["choices"][0]["message"]["content"].strip()
+                txt = txt[txt.find("{"):txt.rfind("}") + 1]
+                return json.loads(txt), f"Maker: Groq {m} | Verified (<2s)"
         except urllib.error.HTTPError as he:
             last_err = f"HTTP {he.code} ({m}): {he.read().decode('utf-8', errors='ignore')[:150]}"
         except Exception as e:
@@ -80,7 +81,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
     errors = []
     if not img_data:
         try:
-            return call_groq_fast(prompt), "Maker: Groq Llama-3.3-70B | Verified (<2s)"
+            return call_groq_fast(prompt)
         except Exception as e:
             errors.append(f"Groq: {e}")
 
