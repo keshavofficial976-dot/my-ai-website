@@ -50,7 +50,8 @@ def call_groq_fast(prompt: str) -> dict:
         raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]:
+
         body = json.dumps({
             "model": m,
             "response_format": {"type": "json_object"},
