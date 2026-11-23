@@ -285,6 +285,12 @@
               })
             });
             if (res.ok) {
+          if (step.action === 'write_file') {
+            const a = document.createElement('a');
+            a.href = '/api/download/' + encodeURIComponent(step.target);
+            a.download = step.target;
+            a.click();
+          }
               const data = await res.json();
               appendMsg('ai', data.reply, data.verified_by);
               if (data.html) {

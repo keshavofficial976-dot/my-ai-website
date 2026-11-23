@@ -161,6 +161,14 @@ document.addEventListener('submit', async function(e) {{
 </script>
 """
 
+
+@app.get("/api/download/{filename}")
+def download_agent_file(filename: str):
+    safe_name = os.path.basename(filename)
+    if os.path.isfile(safe_name):
+        return FileResponse(safe_name, filename=safe_name)
+    raise HTTPException(status_code=404, detail="File not found")
+
 @app.get("/")
 def serve_home():
     return FileResponse("index.html")
