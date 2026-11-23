@@ -270,7 +270,7 @@ def plan_agent_tasks(req: AgentPlanRequest):
         "Set 'reply' to a smart, clear explanation referencing prior context, confirming what you built, and suggesting next steps. "
         "Set 'steps' to a list of steps using action in ['write_file', 'run_cmd', 'open_app', 'type_text']. "
         "When asked for a desktop assistant with a floating toggle button (for opening Chrome, searching, opening Downloads, opening/editing Excel files, etc.), write a complete, easy-to-use Python script via 'write_file' (e.g. 'desktop_copilot.py') using standard libraries (tkinter for floating mini-button, os, subprocess, webbrowser, openpyxl/pandas, speech_recognition) with clear error handling.\n\n"
-        f"User request: {req.goal}"
+        f"User request: {req.message}"
     )
 
     parsed = None
@@ -302,7 +302,7 @@ def plan_agent_tasks(req: AgentPlanRequest):
             raise HTTPException(status_code=503, detail=f"Both Gemini and Groq failed: {e}")
 
     # 3. Independent Checker Audit
-    checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.goal)
+    checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.message)
     try:
         final_plan = json.loads(checked)
     except Exception:
