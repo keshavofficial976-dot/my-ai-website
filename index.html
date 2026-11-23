@@ -338,7 +338,7 @@
             }
           }
         } catch (err) {
-          appendMsg('ai', 'Connection error—make sure your server is running.');
+          appendMsg('ai', 'Exact fetch error: ' + (e && e.message ? e.message : String(e)));
         }
 
         sendBtn.disabled = false;

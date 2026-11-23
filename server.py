@@ -70,7 +70,7 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
         }
         req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=6) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
                 content = raw.get("choices").pop(0).get("message").get("content")
                 return parse_loose_json(content), f"Maker: Groq {m} | Verified"
