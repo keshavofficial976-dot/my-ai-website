@@ -74,26 +74,30 @@
   </div>
 
   <script>
-    let mode = 'web';
-    let history = [];
-    let currentCode = '';
-    let lastAgentFile = '';
-    let imgData = '';
-    let imgMime = '';
-    let abortCtrl = null;
+    window.onerror = function(msg, src, line) {
+      alert('JS Error line ' + line + ': ' + msg);
+    };
+
+    var mode = 'web';
+    var historyList = [];
+    var currentCode = '';
+    var lastAgentFile = '';
+    var imgData = '';
+    var imgMime = '';
+    var abortCtrl = null;
 
     function setMode(m) {
       mode = m;
-      document.getElementById('webModeBtn').classList.toggle('active', m === 'web');
-      document.getElementById('agentModeBtn').classList.toggle('active', m === 'agent');
+      document.getElementById('webModeBtn').className = m === 'web' ? 'mode-btn active' : 'mode-btn';
+      document.getElementById('agentModeBtn').className = m === 'agent' ? 'mode-btn active' : 'mode-btn';
       document.getElementById('previewFrame').style.display = m === 'web' ? 'block' : 'none';
       document.getElementById('agentLog').style.display = m === 'agent' ? 'block' : 'none';
       document.getElementById('viewTitle').textContent = m === 'web' ? 'Live Website Preview' : 'Desktop & Code Agent Log';
     }
 
     function appendMsg(role, text) {
-      const box = document.getElementById('chatBox');
-      const div = document.createElement('div');
+      var box = document.getElementById('chatBox');
+      var div = document.createElement('div');
       div.className = 'msg ' + role;
       div.textContent = text;
       box.appendChild(div);
@@ -106,37 +110,38 @@
         try { abortCtrl.abort(); } catch (e) {}
         abortCtrl = null;
       }
-      const btn = document.getElementById('sendBtn');
+      var btn = document.getElementById('sendBtn');
       btn.disabled = false;
       btn.textContent = 'Send';
       appendMsg('ai', 'Stopped. Ready for your next prompt.');
     }
 
     async function sendMessage() {
-      const box = document.getElementById('promptBox');
-      const text = box.value.trim();
+      var box = document.getElementById('promptBox');
+      var text = box.value.trim();
       if (!text && !imgData) return;
 
       appendMsg('user', (imgData ? '[Photo] ' : '') + text);
-      history.push({ role: 'user', text });
+      historyList.push({ role: 'user', text: text });
       box.value = '';
 
-      const btn = document.getElementById('sendBtn');
+      var btn = document.getElementById('sendBtn');
       btn.disabled = true;
       btn.textContent = 'Working...';
 
       if (abortCtrl) { try { abortCtrl.abort(); } catch (e) {} }
       abortCtrl = new AbortController();
-      const timer = setTimeout(() => { if (abortCtrl) abortCtrl.abort(); }, 25000);
+      var timer = setTimeout(function() { if (abortCtrl) abortCtrl.abort(); }, 25000);
 
       try {
-        const url = mode === 'web' ? '/api/generate' : '/api/agent/plan';
-        const payload = mode === 'web'
-          ? { message: text, history, current_code: currentCode, image_data: imgData, image_mime: imgMime }
-          : { task: text, history };
-        imgData = ''; imgMime = '';
+        var url = mode === 'web' ? '/api/generate' : '/api/agent/plan';
+        var payload = mode === 'web'
+          ? { message: text, history: historyList, current_code: currentCode, image_data: imgData, image_mime: imgMime }
+          : { task: text, history: historyList };
+        imgData = '';
+        imgMime = '';
 
-        const res = await fetch(url, {
+        var res = await fetch(url, {
           method: 'POST',
           signal: abortCtrl.signal,
           headers: { 'Content-Type': 'application/json' },
@@ -144,50 +149,44 @@
         });
         clearTimeout(timer);
 
-        const data = await res.json().catch(() => ({}));
+        var data = await res.json().catch(function() { return {}; });
         if (!res.ok) {
           appendMsg('ai', 'Server error (' + res.status + '): ' + (data.detail || 'Try again'));
         } else if (mode === 'web') {
           appendMsg('ai', (data.reply || 'Updated!') + (data.checker ? '\n[' + data.checker + ']' : ''));
-          history.push({ role: 'ai', text: data.reply || '' });
+          historyList.push({ role: 'ai', text: data.reply || '' });
           if (data.html) {
             currentCode = data.html;
             document.getElementById('previewFrame').srcdoc = currentCode;
           }
         } else {
-          const bubble = appendMsg('ai', (data.reply || 'Plan ready.') + (data.checker ? '\n[' + data.checker + ']' : ''));
-          history.push({ role: 'ai', text: data.reply || '' });
-          (data.steps || []).forEach(step => {
-            const card = document.createElement('div');
-            card.className = 'step-card';
-            card.innerHTML = '<div class="step-head"><span>' + step.action + ': ' + step.target + '</span><button class="btn-app" type="button">Approve & Download</button></div>';
-            card.querySelector('button').onclick = async function () {
-              this.disabled = true;
-              this.textContent = 'Running...';
-              const r = await fetch('/api/agent/execute', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(step)
-              });
-              const out = await r.json();
-              const log = document.getElementById('agentLog');
-              log.textContent += '\n> ' + step.action + ' (' + step.target + ')\n' + out.output + '\n';
-              this.textContent = out.ok ? 'Done' : 'Info';
-              if (out.ok && step.action === 'write_file') {
-                lastAgentFile = step.target;
-                const dl = document.getElementById('downloadAgentBtn');
-                dl.style.display = 'inline-block';
-                dl.textContent = 'Download ' + step.target;
-                window.location.href = '/api/download/' + encodeURIComponent(step.target);
-              }
-            };
-            bubble.appendChild(card);
-          });
-        }
-      } catch (err) {
-        clearTimeout(timer);
-        if (err.name !== 'AbortError') {
-          appendMsg('ai', 'Network/Timeout: ' + (err.message || err));
-        }
-      } finally {
-        btn.disabled = false;
+          var bubble = appendMsg('ai', (data.reply || 'Plan ready.') + (data.checker ? '\n[' + data.checker + ']' : ''));
+          historyList.push({ role: 'ai', text: data.reply || '' });
+          var steps = data.steps || [];
+          for (var i = 0; i < steps.length; i++) {
+            (function(step) {
+              var card = document.createElement('div');
+              card.className = 'step-card';
+              var head = document.createElement('div');
+              head.className = 'step-head';
+              var lbl = document.createElement('span');
+              lbl.textContent = step.action + ': ' + step.target;
+              var appBtn = document.createElement('button');
+              appBtn.className = 'btn-app';
+              appBtn.type = 'button';
+              appBtn.textContent = 'Approve & Download';
+              appBtn.onclick = async function() {
+                appBtn.disabled = true;
+                appBtn.textContent = 'Running...';
+                var r = await fetch('/api/agent/execute', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(step)
+                });
+                var out = await r.json();
+                var log = document.getElementById('agentLog');
+                log.textContent += '\n> ' + step.action + ' (' + step.target + ')\n' + out.output + '\n';
+                appBtn.textContent = out.ok ? 'Done' : 'Info';
+                if (out.ok && step.action === 'write_file') {
+                  lastAgentFile = step.target;
+                  var dl = document.getElementById('downloadAgentBtn');
