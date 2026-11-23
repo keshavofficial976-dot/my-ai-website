@@ -87,6 +87,7 @@
         <button id="photoBtn" class="btn btn-sec" type="button">+ Photo</button>
         <button id="micBtn" class="btn btn-sec" type="button">Speak</button>
         <button id="sendBtn" class="btn btn-send" type="button">Send</button>
+        <button id="forceStopBtn" class="btn" type="button" onclick="forceStopNow()" style="background:#dc2626;color:#fff;flex:1;">Stop</button>
       </div>
     </div>
   </div>
@@ -117,7 +118,7 @@
       const btn = document.getElementById('sendBtn');
       const stopB = document.getElementById('forceStopBtn');
       if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
-      if (stopB) { stopB.style.display = 'none'; }
+      
       appendMsg('ai', '⏹ Stopped. You can edit or send a new prompt now.');
     }
 
@@ -299,6 +300,7 @@
         appendMsg('user', (selectedImgData ? '[Photo attached] ' : '') + (text || 'Build or update based on this photo.'));
         sendBtn.disabled = true;
         sendBtn.textContent = 'Working...';
+        currentAbort = new AbortController();
 
         try {
           if (mode === 'web') {
@@ -360,6 +362,7 @@
 
         sendBtn.disabled = false;
         sendBtn.textContent = 'Send';
+        currentAbort = null;
       }
 
       sendBtn.addEventListener('click', sendMessage);
