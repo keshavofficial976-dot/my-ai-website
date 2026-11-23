@@ -19,7 +19,7 @@
     .msg.user { background: #4f46e5; color: #fff; align-self: flex-end; }
     .msg.ai { background: #334155; color: #f1f5f9; align-self: flex-start; }
     .step-card { background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 10px; margin-top: 6px; }
-    .step-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #38bdf8; font-weight: 600; }
+    .step-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #38bdf8; font-weight: 600; gap: 8px; }
     .btn-app { background: #10b981; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
     .composer { padding: 12px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
     textarea { width: 100%; height: 74px; background: #0f172a; border: 1px solid #475569; border-radius: 10px; color: #fff; padding: 10px; resize: none; font-size: 13.5px; }
@@ -41,11 +41,11 @@
   <div class="sidebar">
     <div class="brand">
       <h2>AI Studio & Agent</h2>
-      <span class="badge" id="statusBadge">Ready</span>
+      <span class="badge" id="statusBadge">Connecting...</span>
     </div>
     <div class="modes">
-      <button id="webModeBtn" class="mode-btn active" type="button" onclick="setMode('web')">Website Builder</button>
-      <button id="agentModeBtn" class="mode-btn" type="button" onclick="setMode('agent')">Desktop & Code Agent</button>
+      <button id="webModeBtn" class="mode-btn active" type="button">Website Builder</button>
+      <button id="agentModeBtn" class="mode-btn" type="button">Desktop & Code Agent</button>
     </div>
     <div class="chat" id="chatBox">
       <div class="msg ai">Hi! Switch between <b>Website Builder</b> and <b>Desktop & Code Agent</b> above, type your prompt, and click <b>Send</b>. Click <b>Stop</b> anytime to cancel immediately.</div>
@@ -53,10 +53,10 @@
     <div class="composer">
       <textarea id="promptBox" placeholder="Describe a website or desktop agent..."></textarea>
       <div class="controls">
-        <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="loadPhoto(event)" />
-        <button class="btn btn-sec" type="button" onclick="document.getElementById('imgInput').click()">+ Photo</button>
-        <button id="sendBtn" class="btn btn-send" type="button" onclick="sendMessage()">Send</button>
-        <button id="stopBtn" class="btn btn-stop" type="button" onclick="forceStopNow()">Stop</button>
+        <input type="file" id="imgInput" accept="image/*" style="display:none" />
+        <button id="photoBtn" class="btn btn-sec" type="button">+ Photo</button>
+        <button id="sendBtn" class="btn btn-send" type="button">Send</button>
+        <button id="stopBtn" class="btn btn-stop" type="button">Stop</button>
       </div>
     </div>
   </div>
@@ -64,9 +64,9 @@
     <div class="topbar">
       <span id="viewTitle" style="font-size:13.5px;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
       <div class="top-btns">
-        <button id="downloadAgentBtn" class="btn-dl" style="background:#6366f1;display:none;" onclick="downloadAgentFile()">Download Agent</button>
-        <button class="btn-dl" style="background:#334155;" onclick="resetAll()">New</button>
-        <button class="btn-dl" onclick="downloadHtml()">Download HTML</button>
+        <button id="downloadAgentBtn" class="btn-dl" style="background:#6366f1;display:none;" type="button">Download Agent</button>
+        <button id="newBtn" class="btn-dl" style="background:#334155;" type="button">New</button>
+        <button id="downloadHtmlBtn" class="btn-dl" type="button">Download HTML</button>
       </div>
     </div>
     <iframe id="previewFrame"></iframe>
@@ -81,10 +81,6 @@
     let imgData = '';
     let imgMime = '';
     let abortCtrl = null;
-
-    fetch('/api/health').then(r => r.json()).then(d => {
-      document.getElementById('statusBadge').textContent = d.groq ? 'Groq + Gemini Live' : 'Online';
-    }).catch(() => {});
 
     function setMode(m) {
       mode = m;
@@ -103,18 +99,6 @@
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
       return div;
-    }
-
-    function loadPhoto(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      imgMime = file.type;
-      const reader = new FileReader();
-      reader.onload = () => {
-        imgData = reader.result.split(',')[1];
-        appendMsg('ai', 'Photo attached: ' + file.name);
-      };
-      reader.readAsDataURL(file);
     }
 
     function forceStopNow() {
@@ -176,7 +160,7 @@
           (data.steps || []).forEach(step => {
             const card = document.createElement('div');
             card.className = 'step-card';
-            card.innerHTML = `<div class="step-head"><span>${step.action}: ${step.target}</span><button class="btn-app" type="button">Approve & Download</button></div>`;
+            card.innerHTML = '<div class="step-head"><span>' + step.action + ': ' + step.target + '</span><button class="btn-app" type="button">Approve & Download</button></div>';
             card.querySelector('button').onclick = async function () {
               this.disabled = true;
               this.textContent = 'Running...';
@@ -187,5 +171,23 @@
               });
               const out = await r.json();
               const log = document.getElementById('agentLog');
-              log.textContent += `\n> ${step.action} (${step.target})\n${out.output}\n`;
+              log.textContent += '\n> ' + step.action + ' (' + step.target + ')\n' + out.output + '\n';
               this.textContent = out.ok ? 'Done' : 'Info';
+              if (out.ok && step.action === 'write_file') {
+                lastAgentFile = step.target;
+                const dl = document.getElementById('downloadAgentBtn');
+                dl.style.display = 'inline-block';
+                dl.textContent = 'Download ' + step.target;
+                window.location.href = '/api/download/' + encodeURIComponent(step.target);
+              }
+            };
+            bubble.appendChild(card);
+          });
+        }
+      } catch (err) {
+        clearTimeout(timer);
+        if (err.name !== 'AbortError') {
+          appendMsg('ai', 'Network/Timeout: ' + (err.message || err));
+        }
+      } finally {
+        btn.disabled = false;
