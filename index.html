@@ -332,29 +332,6 @@
         }
       });
     });
-  
-    async function runBackupBrain() {
-      const btn = document.getElementById('selfUpgradeBtn');
-      btn.disabled = true;
-      btn.textContent = 'Auditing...';
-      try {
-        const res = await fetch('/api/agent/self_upgrade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ instruction: 'Inspect the app UI and capabilities, spot any missing buttons or workflows, and upgrade automatically if needed.' })
-        });
-        const data = await res.json();
-        alert('Backup Brain Diagnosis:
-' + data.diagnosis + '
-
-Updated file: ' + data.updated_file);
-        if (data.updated_file === 'index.html') location.reload();
-      } catch (e) {
-        alert('Backup Brain audit error: ' + e);
-      }
-      btn.disabled = false;
-      btn.textContent = 'Backup Brain Audit';
-    }
-    </script>
+  </script>
 </body>
 </html>
