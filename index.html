@@ -108,6 +108,7 @@
       let mode = 'web';
       let currentCode = '';
     let lastAgentFile = '';
+    fetch('/api/health').catch(()=>{});
     document.addEventListener('DOMContentLoaded', () => {
       const agBtn = document.getElementById('downloadAgentBtn');
       if (agBtn) {

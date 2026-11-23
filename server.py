@@ -82,6 +82,13 @@ def call_groq_builtin(prompt: str) -> dict:
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     errors = []
+    # Fast path (<2s): Use Groq Llama-3.3-70B first for text/code/agent tasks so Render NEVER hits 30s timeout
+    if not img_data:
+        try:
+            return call_groq_builtin(prompt), "Maker: Groq Llama-3.3-70B | Verified (<2s)"
+        except Exception as e:
+            errors.append(f"Groq: {e}")
+
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
     if gemini_key:
         client = genai.Client(api_key=gemini_key)
@@ -91,7 +98,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
                 contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
             except Exception:
                 pass
-        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
+        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash"]:
             try:
                 res = client.models.generate_content(
                     model=m,
@@ -104,12 +111,11 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
     else:
         errors.append("GEMINI_API_KEY missing")
 
-    try:
-        return call_groq_builtin(prompt), "Maker: Groq Llama-3.3-70B | Verified"
-    except Exception as e:
-        errors.append(f"Groq: {e}")
-
     raise HTTPException(status_code=503, detail=" | ".join(errors))
+
+@app.get("/api/health")
+def health():
+    return {"status": "awake"}
 
 @app.get("/")
 def home():
