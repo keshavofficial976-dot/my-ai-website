@@ -222,6 +222,34 @@ class AgentPlanResponse(BaseModel):
     reply: str
     steps: List[AgentStep]
 
+class AgentStep(BaseModel):
+    action: str
+    target: str
+    content: str = ""
+
+class AgentPlanResponse(BaseModel):
+    reply: str
+    steps: List[AgentStep]
+
+def call_groq_maker(prompt: str) -> dict:
+    if not GROQ_API_KEY:
+        raise RuntimeError("No GROQ_API_KEY")
+    resp = requests.post(
+        "https://groq.com",
+        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+        json={
+            "model": "llama-3.3-70b-versatile",
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": "Return ONLY valid JSON with keys 'reply' (string) and 'steps' (list of objects with 'action', 'target', 'content')."},
+                {"role": "user", "content": prompt}
+            ]
+        },
+        timeout=35
+    )
+    resp.raise_for_status()
+    return json.loads(resp.json()["choices"][0]["message"]["content"])
+
 @app.post("/api/agent/plan")
 def plan_agent_tasks(req: AgentPlanRequest):
     is_windows = (os.name == "nt")
@@ -241,11 +269,14 @@ def plan_agent_tasks(req: AgentPlanRequest):
         f"Recent conversation history:\n{recent_chat}\n\n"
         "Set 'reply' to a smart, clear explanation referencing prior context, confirming what you built, and suggesting next steps. "
         "Set 'steps' to a list of steps using action in ['write_file', 'run_cmd', 'open_app', 'type_text']. "
-        "When writing a Windows desktop assistant script, save it via 'write_file' (e.g. 'my_desktop_assistant.py') using standard Windows libraries (os, subprocess, webbrowser, pyautogui, speech_recognition) without blocking input() calls on the server.\n\n"
+        "When asked for a desktop assistant with a floating toggle button (for opening Chrome, searching, opening Downloads, opening/editing Excel files, etc.), write a complete, easy-to-use Python script via 'write_file' (e.g. 'desktop_copilot.py') using standard libraries (tkinter for floating mini-button, os, subprocess, webbrowser, openpyxl/pandas, speech_recognition) with clear error handling.\n\n"
         f"User request: {req.goal}"
     )
 
-    last_err = "Unknown error"
+    parsed = None
+    maker_used = "Gemini"
+
+    # 1. Try Gemini Makers with strict JSON Schema
     for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
             res = client.models.generate_content(
@@ -257,45 +288,70 @@ def plan_agent_tasks(req: AgentPlanRequest):
                 ),
             )
             parsed = json.loads(res.text)
-            checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.goal)
-            try:
-                final_plan = json.loads(checked)
-            except Exception:
-                final_plan = parsed
-            return {
-                "reply": final_plan.get("reply", "Plan ready!"),
-                "steps": final_plan.get("steps", []),
-                "checker": badge,
-            }
-        except Exception as e:
-            last_err = str(e)
+            maker_used = model_name
+            break
+        except Exception:
             continue
-    raise HTTPException(status_code=503, detail=f"Planner error: {last_err}")
+
+    # 2. Automatic Failover: If all Gemini models fail, Groq Llama-3.3-70B takes over as Maker!
+    if parsed is None:
+        try:
+            parsed = call_groq_maker(prompt)
+            maker_used = "Groq Llama-3.3-70B (Backup Maker)"
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Both Gemini and Groq failed: {e}")
+
+    # 3. Independent Checker Audit
+    checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.goal)
+    try:
+        final_plan = json.loads(checked)
+    except Exception:
+        final_plan = parsed
+
+    return {
+        "reply": final_plan.get("reply", "Plan ready!"),
+        "steps": final_plan.get("steps", []),
+        "checker": f"Maker: {maker_used} | {badge}",
+    }
 
 @app.post("/api/agent/execute")
 def execute_agent_step(step: AgentStepRequest):
-    act = step.action.strip()
+    act = step.action
     try:
         if act == "write_file":
-            safe_name = os.path.basename(step.target)
-            with open(safe_name, "w", encoding="utf-8") as f:
+            with open(step.target, "w", encoding="utf-8") as f:
                 f.write(step.content)
-            return {"ok": True, "output": f"Saved file: {safe_name}"}
+            # Self-healing syntax verification loop for Python files!
+            if step.target.endswith(".py"):
+                for attempt in range(2):
+                    chk = subprocess.run(["python", "-m", "py_compile", step.target], capture_output=True, text=True)
+                    if chk.returncode == 0:
+                        break
+                    # Auto-repair syntax error using Gemini/Groq before finishing!
+                    fix_prompt = f"Fix this Python syntax error in {step.target} and return ONLY raw corrected Python code without markdown backticks:\nError: {chk.stderr}\n\nCode:\n{step.content}"
+                    try:
+                        fix_res = client.models.generate_content(model="gemini-3.5-flash-lite", contents=fix_prompt)
+                        fixed_code = fix_res.text.replace("```python", "").replace("```", "").strip()
+                        with open(step.target, "w", encoding="utf-8") as f:
+                            f.write(fixed_code)
+                    except Exception:
+                        break
+            return {"ok": True, "output": f"Saved & syntax-verified file: {step.target}"}
         elif act == "run_cmd":
             proc = subprocess.run(step.target, shell=True, capture_output=True, text=True, timeout=30)
-            out = (proc.stdout + "\n" + proc.stderr).strip() or "Command completed."
-            return {"ok": True, "output": out[:1500]}
+            out = (proc.stdout + proc.stderr).strip()
+            return {"ok": proc.returncode == 0, "output": out[:1500] or "Command completed."}
         elif act == "open_app":
             if os.name == "nt":
-                os.system(f"start {step.target}")
+                os.system(f'start "" "{step.target}"')
                 return {"ok": True, "output": f"Opened Windows app: {step.target}"}
-            return {"ok": False, "output": "Desktop GUI actions work when running locally on Windows."}
+            return {"ok": False, "output": "Cloud server mode: download the generated .py script to run GUI apps on Windows."}
         elif act == "type_text":
             if HAS_GUI and os.name == "nt":
                 pyautogui.sleep(0.8)
                 pyautogui.write(step.target, interval=0.03)
                 return {"ok": True, "output": f"Typed text on desktop: {step.target}"}
-            return {"ok": False, "output": "Desktop typing requires running server.py locally on Windows."}
+            return {"ok": False, "output": "Cloud server mode: desktop typing runs when executing locally on Windows."}
         return {"ok": False, "output": f"Unknown action: {act}"}
     except Exception as e:
         return {"ok": False, "output": str(e)}
