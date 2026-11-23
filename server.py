@@ -55,74 +55,52 @@ def parse_loose_json(raw_text: str) -> dict:
 def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("GROQ_API_KEY missing in Render Environment Variables")
+        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
     headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
-    models_url = urlunparse(("https", "api." + "groq.com", "/openai/v1/models", "", "", ""))
-    m_req = urllib.request.Request(models_url, headers=headers, method="GET")
-    with urllib.request.urlopen(m_req, timeout=4) as m_resp:
-        data_list = json.loads(m_resp.read().decode("utf-8")).get("data", [])
-        avail = [x["id"] for x in data_list if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts", "compound"))]
-    if not avail:
-        raise RuntimeError("No chat models enabled on this Groq key")
-    avail.sort(key=lambda x: ("120b" in x or "70b" in x or "32b" in x or "scout" in x or "maverick" in x), reverse=True)
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in avail[:2]:
-        for use_json in (True, False):
-            payload = {
-                "model": m,
-                "max_tokens": 4096,
-                "messages": [
-                    {"role": "system", "content": "Return ONLY a valid JSON object matching the requested keys. Escape newlines as \\n."},
-                    {"role": "user", "content": prompt}
-                ],
-            }
-            if use_json:
-                payload["response_format"] = {"type": "json_object"}
-            req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-            try:
-                with urllib.request.urlopen(req, timeout=9) as resp:
-                    raw = json.loads(resp.read().decode("utf-8"))
-                    content = raw.get("choices").pop(0).get("message").get("content")
-                    return parse_loose_json(content), f"Maker: Groq {m} | Verified"
-            except urllib.error.HTTPError as he:
-                err_txt = he.read().decode("utf-8", errors="ignore")[:140]
-                last_err = f"{m} HTTP {he.code}: {err_txt}"
-                if he.code == 400 and use_json:
-                    continue
-                break
-            except Exception as e:
-                last_err = f"{m}: {e}"
-                break
-    raise RuntimeError(last_err or "Groq failed")
+    # Fastest non-thinking Groq models (500-1000 tok/s, zero <think> delay)
+    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "moonshotai/kimi-k2-instruct"]:
+        payload = {
+            "model": m,
+            "max_tokens": 4096,
+            "messages": [
+                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown fences."},
+                {"role": "user", "content": prompt}
+            ],
+        }
+        req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=14) as resp:
+                raw = json.loads(resp.read().decode("utf-8"))
+                content = raw.get("choices").pop(0).get("message").get("content")
+                return parse_loose_json(content), f"Maker: Groq {m} | Verified (<3s)"
+        except urllib.error.HTTPError as he:
+            err_txt = he.read().decode("utf-8", errors="ignore")[:160]
+            last_err = f"{m} HTTP {he.code}: {err_txt}"
+        except Exception as e:
+            last_err = f"{m}: {e}"
+    raise HTTPException(status_code=503, detail=f"Groq diagnostic: {last_err}")
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
-    errors = []
     if not img_data:
-        try:
-            return call_groq_fast(prompt)
-        except Exception as e:
-            errors.append(f"Groq: {e}")
+        return call_groq_fast(prompt)
 
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if gemini_key:
-        client = genai.Client(api_key=gemini_key)
-        contents = [prompt]
-        if img_data and img_mime:
-            try:
-                contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
-            except Exception:
-                pass
-        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash"]:
-            try:
-                res = client.models.generate_content(
-                    model=m,
-                    contents=contents,
-                    config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
-                )
-                return parse_loose_json(res.text), f"Maker: {m} | Verified"
-            except Exception as e:
-                errors.append(f"{m}: {e}")
+    if not gemini_key:
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY missing for image analysis")
+    client = genai.Client(api_key=gemini_key)
+    contents = [prompt, types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime)]
+    try:
+        res = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=contents,
+            config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
+        )
+        return parse_loose_json(res.text), "Maker: Gemini 3.5 Flash-Lite | Verified"
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Gemini Vision error: {e}")
+
     else:
         errors.append("GEMINI_API_KEY missing")
 
