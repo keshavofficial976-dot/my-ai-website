@@ -129,7 +129,7 @@ def plan_agent(req: AgentReq):
     env = "Windows PC" if os.name == "nt" else "Cloud Linux (always use write_file to generate standalone Windows Python tkinter GUI scripts that auto-install missing pip packages and call root.mainloop())"
     prompt = (
         f"You are an Autonomous AI Agent. Environment: {env}. "
-        "Write top-level Python tkinter GUI code (do NOT hide execution behind uncalled functions) using ONLY built-in modules (tkinter, os, subprocess, webbrowser, shutil, glob) and ending with root.mainloop(). Return ONLY JSON with keys 'reply' (string) and 'steps' (list of objects with 'action' in ['write_file', 'run_cmd', 'open_app'], 'target', 'content').\n"
+        "Write top-level Python tkinter GUI code (do NOT hide execution behind uncalled functions) using ONLY built-in modules (tkinter, from tkinter import messagebox, os, subprocess, webbrowser, shutil, glob, urllib.request, json) and ending with root.mainloop(). Design a sleek dark-mode always-on-top floating toggle assistant with a Natural-Language Command Input box where typing ANY instruction (opening apps via subprocess.Popen('start ' + app, shell=True), opening websites via webbrowser.open, sorting files, or running tasks) executes dynamically without FileNotFoundError. Return ONLY JSON with keys 'reply' (string) and 'steps' (list of objects with 'action' in ['write_file', 'run_cmd', 'open_app'], 'target', 'content').\n"
         f"History:\n{hist}\nUser: {req.task}"
     )
     data, badge = ask_ai(prompt)
@@ -151,7 +151,7 @@ def exec_step(step: StepReq):
                     f"{indented}\n"
                     "except Exception:\n"
                     "    traceback.print_exc()\n"
-                    "    input('\nPress Enter to close...')\n"
+                    "    input('Press Enter to close...')\n"
                 )
             with open(safe, "w", encoding="utf-8") as f:
                 f.write(code)
