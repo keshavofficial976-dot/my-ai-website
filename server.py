@@ -50,6 +50,7 @@ def groq_json(prompt: str) -> dict:
         raise RuntimeError("No GROQ_API_KEY")
     r = requests.post(
         "https://groq.com",
+
         headers={"Authorization": f"Bearer {gk}", "Content-Type": "application/json"},
         json={
             "model": "llama-3.3-70b-versatile",
