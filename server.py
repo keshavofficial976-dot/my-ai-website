@@ -47,10 +47,20 @@ class AgentOut(BaseModel):
 def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
+        raise RuntimeError("GROQ_API_KEY missing")
+    headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
+    # Auto-discover models that YOUR Groq key actually has access to!
+    models_url = urlunparse(("https", "api." + "groq.com", "/openai/v1/models", "", "", ""))
+    m_req = urllib.request.Request(models_url, headers=headers, method="GET")
+    with urllib.request.urlopen(m_req, timeout=6) as m_resp:
+        avail = [x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", []) if "whisper" not in x["id"] and "guard" not in x["id"]]
+    if not avail:
+        raise RuntimeError("No chat models enabled on this Groq API key")
+    # Prefer largest/smartest available model first
+    avail.sort(key=lambda x: ("120b" in x or "70b" in x or "32b" in x or "scout" in x or "maverick" in x), reverse=True)
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]:
+    for m in avail[:3]:
         body = json.dumps({
             "model": m,
             "messages": [
@@ -58,20 +68,13 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
                 {"role": "user", "content": prompt}
             ],
         }).encode("utf-8")
-        req = urllib.request.Request(
-            endpoint,
-            data=body,
-            headers={"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"},
-            method="POST",
-        )
+        req = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
                 txt = raw["choices"]["message"]["content"].strip()
                 txt = txt[txt.find("{"):txt.rfind("}") + 1]
-                return json.loads(txt), f"Maker: Groq {m} | Verified (<2s)"
-        except urllib.error.HTTPError as he:
-            last_err = f"HTTP {he.code} ({m}): {he.read().decode('utf-8', errors='ignore')[:150]}"
+                return json.loads(txt), f"Maker: Groq {m} | Verified"
         except Exception as e:
             last_err = f"{m}: {e}"
     raise RuntimeError(last_err or "Groq failed")
