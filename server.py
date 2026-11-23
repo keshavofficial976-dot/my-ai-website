@@ -55,36 +55,6 @@ def parse_loose_json(raw_text: str) -> dict:
 def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
-    headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
-    endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
-    last_err = None
-    # Fastest non-thinking Groq models (500-1000 tok/s, zero <think> delay)
-    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "moonshotai/kimi-k2-instruct"]:
-        payload = {
-            "model": m,
-            "max_tokens": 4096,
-            "messages": [
-                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown fences."},
-                {"role": "user", "content": prompt}
-            ],
-        }
-        req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-        try:
-            with urllib.request.urlopen(req, timeout=14) as resp:
-                raw = json.loads(resp.read().decode("utf-8"))
-                content = raw.get("choices").pop(0).get("message").get("content")
-                return parse_loose_json(content), f"Maker: Groq {m} | Verified (<3s)"
-        except urllib.error.HTTPError as he:
-            err_txt = he.read().decode("utf-8", errors="ignore")[:160]
-            last_err = f"{m} HTTP {he.code}: {err_txt}"
-        except Exception as e:
-            last_err = f"{m}: {e}"
-    raise HTTPException(status_code=503, detail=f"Groq diagnostic: {last_err}")
-
-def call_groq_fast(prompt: str) -> tuple[dict, str]:
-    gk = os.getenv("GROQ_API_KEY", "").strip()
-    if not gk:
         raise HTTPException(status_code=503, detail="GROQ_API_KEY missing in Render")
     headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
@@ -100,7 +70,7 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
         }
         req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=7) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
                 content = raw.get("choices").pop(0).get("message").get("content")
                 return parse_loose_json(content), f"Maker: Groq {m} | Verified"
@@ -128,6 +98,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
         return parse_loose_json(res.text), "Maker: Gemini 3.5 Flash-Lite | Verified"
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Gemini Vision error: {e}")
+
 @app.get("/api/health")
 def health():
     return {
