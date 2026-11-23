@@ -174,7 +174,7 @@ def chat_or_build(req: ChatRequest):
         "Return ONLY raw JSON (no markdown backticks) with keys:\n"
         "1. 'reply': Friendly conversational reply explaining what you built/changed, asking the user to verify it on the right, and suggesting 1-2 next steps.\n"
         "2. 'html': Complete valid single-file HTML with internal CSS (nav links use #section-id, forms use <form> and <button type='submit'>). Set to '' if only answering a question.\n\n"
-        f"Conversation:\n{recent_chat}\nCurrent HTML:\n{req.current_code if req.current_code else '(None yet)'}\n\nUser: {req.message}"
+        f"Conversation:\n{recent_chat}\nCurrent HTML:\n{req.current_code if req.current_code else '(None yet)'}\n\nUser: {req.task}"
     )
 
     contents = [instruction]
@@ -200,7 +200,7 @@ def chat_or_build(req: ChatRequest):
             html = parsed.get("html", "").strip()
             verified_badge = ""
             if html:
-                fixed_html, checker_info = run_checker_ai("website HTML", req.message, html)
+                fixed_html, checker_info = run_checker_ai("website HTML", req.task, html)
                 if fixed_html and "<html" in fixed_html.lower():
                     html = fixed_html.replace("```html", "").replace("```", "").strip()
                 verified_badge = checker_info
@@ -233,11 +233,12 @@ class AgentPlanResponse(BaseModel):
     steps: List[AgentStep]
 
 def call_groq_maker(prompt: str) -> dict:
-    if not GROQ_API_KEY:
+    groq_k = os.getenv("GROQ_API_KEY", "").strip()
+    if not groq_k:
         raise RuntimeError("No GROQ_API_KEY")
     resp = requests.post(
         "https://groq.com",
-        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+        headers={"Authorization": f"Bearer {groq_k}", "Content-Type": "application/json"},
         json={
             "model": "llama-3.3-70b-versatile",
             "response_format": {"type": "json_object"},
@@ -271,7 +272,7 @@ def plan_agent_tasks(req: AgentPlanRequest):
         "Set 'reply' to a smart, clear explanation referencing prior context, confirming what you built, and suggesting next steps. "
         "Set 'steps' to a list of steps using action in ['write_file', 'run_cmd', 'open_app', 'type_text']. "
         "When asked for a desktop assistant with a floating toggle button (for opening Chrome, searching, opening Downloads, opening/editing Excel files, etc.), write a complete, easy-to-use Python script via 'write_file' (e.g. 'desktop_copilot.py') using standard libraries (tkinter for floating mini-button, os, subprocess, webbrowser, openpyxl/pandas, speech_recognition) with clear error handling.\n\n"
-        f"User request: {req.message}"
+        f"User request: {req.task}"
     )
 
     parsed = None
@@ -303,7 +304,7 @@ def plan_agent_tasks(req: AgentPlanRequest):
             raise HTTPException(status_code=503, detail=f"Both Gemini and Groq failed: {e}")
 
     # 3. Independent Checker Audit
-    checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.message)
+    checked, badge = run_checker_ai("agent_plan", req.task, json.dumps(parsed))
     try:
         final_plan = json.loads(checked)
     except Exception:
