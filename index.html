@@ -107,6 +107,13 @@
     document.addEventListener('DOMContentLoaded', function() {
       let mode = 'web';
       let currentCode = '';
+    let activeController = null;
+    function stopRequest() {
+      if (activeController) {
+        activeController.abort();
+        activeController = null;
+      }
+    }
       let chatHistory = [];
       let selectedImgData = '';
       let selectedImgMime = '';
@@ -240,7 +247,8 @@
             try {
               const res = await fetch('/api/agent/execute', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                signal: activeController ? activeController.signal : undefined,
+          headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(step)
               });
               const data = await res.json();
@@ -273,7 +281,8 @@
             clearImage();
             const res = await fetch('/api/generate', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              signal: activeController ? activeController.signal : undefined,
+          headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 message: text || 'Build or update the website based on this attached image.',
                 history: chatHistory,
@@ -303,7 +312,8 @@
           } else {
             const res = await fetch('/api/agent/plan', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              signal: activeController ? activeController.signal : undefined,
+          headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: text, history: chatHistory })
             });
             if (res.ok) {
