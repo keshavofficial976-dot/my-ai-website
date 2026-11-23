@@ -68,7 +68,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
             contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
         except Exception:
             pass
-    for m in ["gemini-2.5-flash", "gemini-2.5-flash-lite"]:
+    for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
             res = client.models.generate_content(
                 model=m,
@@ -78,7 +78,16 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
             return json.loads(res.text), f"Maker: {m} | Checked"
         except Exception:
             continue
-    return groq_json(prompt), "Maker: Groq Llama-3.3-70B | Checked"
+    try:
+        try:
+        try:
+        return groq_json(prompt), "Maker: Groq Llama-3.3-70B | Checked"
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI error: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI error: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI error: {e}")
 
 @app.get("/")
 def home():
