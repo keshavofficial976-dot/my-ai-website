@@ -213,13 +213,22 @@ def chat_or_build(req: ChatRequest):
             continue
     raise HTTPException(status_code=503, detail="AI servers busy, please retry in a moment.")
 
+class AgentStep(BaseModel):
+    action: str
+    target: str
+    content: str = ""
+
+class AgentPlanResponse(BaseModel):
+    reply: str
+    steps: List[AgentStep]
+
 @app.post("/api/agent/plan")
 def plan_agent_tasks(req: AgentPlanRequest):
     is_windows = (os.name == "nt")
     env_info = (
         "Running LOCALLY on Windows: you CAN use open_app (e.g. notepad, calc, chrome) and type_text."
         if is_windows else
-        "Running on a CLOUD Linux server (Render): NEVER use open_app or Windows GUI commands like notepad/tkinter, and NEVER write scripts that block on input(). Instead, write clean standalone files or Python scripts and offer clear instructions."
+        "Running on a CLOUD Linux server (Render): NEVER use open_app or Windows GUI commands like notepad/tkinter, and NEVER write scripts that block on input(). Instead, write clean standalone Python files (write_file) that the user can download and run on Windows."
     )
     recent_chat = "\n".join([f"{m.get('role', 'user')}: {m.get('text', '')}" for m in req.history[-10:]])
     existing_files = [f for f in os.listdir(".") if os.path.isfile(f) and not f.startswith(".")]
@@ -230,22 +239,38 @@ def plan_agent_tasks(req: AgentPlanRequest):
         f"Environment: {env_info}\n"
         f"Existing files in workspace: {existing_files}\n"
         f"Recent conversation history:\n{recent_chat}\n\n"
-        "Return ONLY raw JSON (no markdown backticks) with:\n"
-        "1. \"reply\": A smart, clear, helpful explanation referencing prior context, confirming what you created or updated, and suggesting the best next step.\n"
-        "2. \"steps\": A list of step objects, each with \"action\" (write_file | run_cmd | open_app | type_text), \"target\" (filename, command, app, or text), and \"content\" (full file contents for write_file, else empty string). Set steps to [] if the user is only asking a question.\n\n"
+        "Set 'reply' to a smart, clear explanation referencing prior context, confirming what you built, and suggesting next steps. "
+        "Set 'steps' to a list of steps using action in ['write_file', 'run_cmd', 'open_app', 'type_text']. "
+        "When writing a Windows desktop assistant script, save it via 'write_file' (e.g. 'my_desktop_assistant.py') using standard Windows libraries (os, subprocess, webbrowser, pyautogui, speech_recognition) without blocking input() calls on the server.\n\n"
         f"User request: {req.goal}"
     )
-    for model_name in ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]:
+
+    last_err = "Unknown error"
+    for model_name in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
         try:
-            res = client.models.generate_content(model=model_name, contents=prompt)
-            raw = res.text.replace("```json", "").replace("```", "").strip()
-            parsed = json.loads(raw)
+            res = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=AgentPlanResponse,
+                ),
+            )
+            parsed = json.loads(res.text)
             checked, badge = run_checker_audit("agent_plan", json.dumps(parsed), req.goal)
-            final_plan = json.loads(checked)
-            return {"reply": final_plan.get("reply", "Plan ready."), "steps": final_plan.get("steps", []), "checker": badge}
-        except Exception:
+            try:
+                final_plan = json.loads(checked)
+            except Exception:
+                final_plan = parsed
+            return {
+                "reply": final_plan.get("reply", "Plan ready!"),
+                "steps": final_plan.get("steps", []),
+                "checker": badge,
+            }
+        except Exception as e:
+            last_err = str(e)
             continue
-    raise HTTPException(status_code=503, detail="Agent planner busy, please retry.")
+    raise HTTPException(status_code=503, detail=f"Planner error: {last_err}")
 
 @app.post("/api/agent/execute")
 def execute_agent_step(step: AgentStepRequest):
