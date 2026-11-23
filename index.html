@@ -1,192 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Studio & Desktop Agent</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
-    .sidebar { width: 390px; background: #1e293b; border-right: 1px solid #334155; display: flex; flex-direction: column; }
-    .brand { padding: 16px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-    .brand h2 { font-size: 17px; color: #818cf8; }
-    .badge { font-size: 11px; background: #064e3b; color: #34d399; padding: 3px 8px; border-radius: 99px; }
-    .modes { display: flex; padding: 8px; gap: 6px; background: #0f172a; }
-    .mode-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: 600; font-size: 13px; }
-    .mode-btn.active { background: #4f46e5; color: #fff; }
-    .chat { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-    .msg { padding: 11px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.45; max-width: 92%; white-space: pre-wrap; word-break: break-word; }
-    .msg.user { background: #4f46e5; color: #fff; align-self: flex-end; }
-    .msg.ai { background: #334155; color: #f1f5f9; align-self: flex-start; }
-    .step-card { background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 10px; margin-top: 6px; }
-    .step-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #38bdf8; font-weight: 600; gap: 8px; }
-    .btn-app { background: #10b981; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
-    .composer { padding: 12px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
-    textarea { width: 100%; height: 74px; background: #0f172a; border: 1px solid #475569; border-radius: 10px; color: #fff; padding: 10px; resize: none; font-size: 13.5px; }
-    .controls { display: flex; gap: 6px; }
-    .btn { padding: 9px 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
-    .btn-sec { background: #334155; color: #e2e8f0; }
-    .btn-send { background: #4f46e5; color: #fff; flex: 2; }
-    .btn-send:disabled { opacity: 0.6; cursor: wait; }
-    .btn-stop { background: #dc2626; color: #fff; flex: 1; }
-    .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar { height: 52px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; }
-    .top-btns { display: flex; gap: 8px; }
-    .btn-dl { background: #10b981; color: #fff; border: none; padding: 7px 13px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
-    iframe { flex: 1; width: 100%; border: none; background: #fff; }
-    #agentLog { flex: 1; padding: 20px; background: #020617; color: #38bdf8; font-family: monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; display: none; }
-  </style>
-</head>
-<body>
-  <div class="sidebar">
-    <div class="brand">
-      <h2>AI Studio & Agent</h2>
-      <span class="badge" id="statusBadge">Connecting...</span>
-    </div>
-    <div class="modes">
-      <button id="webModeBtn" class="mode-btn active" type="button">Website Builder</button>
-      <button id="agentModeBtn" class="mode-btn" type="button">Desktop & Code Agent</button>
-    </div>
-    <div class="chat" id="chatBox">
-      <div class="msg ai">Hi! Switch between <b>Website Builder</b> and <b>Desktop & Code Agent</b> above, type your prompt, and click <b>Send</b>. Click <b>Stop</b> anytime to cancel immediately.</div>
-    </div>
-    <div class="composer">
-      <textarea id="promptBox" placeholder="Describe a website or desktop agent..."></textarea>
-      <div class="controls">
-        <input type="file" id="imgInput" accept="image/*" style="display:none" />
-        <button id="photoBtn" class="btn btn-sec" type="button">+ Photo</button>
-        <button id="sendBtn" class="btn btn-send" type="button">Send</button>
-        <button id="stopBtn" class="btn btn-stop" type="button">Stop</button>
-      </div>
+<html lang="en"><head><meta charset="UTF-8"><title>AI Studio v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{display:flex;height:100vh;background:#0f172a;color:#f8fafc}
+.side{width:380px;background:#1e293b;border-right:1px solid #334155;display:flex;flex-direction:column}
+.top{padding:14px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center}
+.badge{font-size:11px;background:#064e3b;color:#34d399;padding:3px 8px;border-radius:99px}
+.tabs{display:flex;padding:8px;gap:6px;background:#0f172a}
+.tab{flex:1;padding:8px;border:none;border-radius:8px;background:transparent;color:#94a3b8;cursor:pointer;font-weight:600}
+.tab.active{background:#4f46e5;color:#fff}
+.chat{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.4;max-width:92%;white-space:pre-wrap;word-break:break-word}
+.user{background:#4f46e5;align-self:flex-end}.ai{background:#334155;align-self:flex-start}
+.card{background:#0f172a;border:1px solid #475569;border-radius:8px;padding:8px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#38bdf8}
+.comp{padding:10px;border-top:1px solid #334155;display:flex;flex-direction:column;gap:6px}
+textarea{width:100%;height:70px;background:#0f172a;border:1px solid #475569;border-radius:8px;color:#fff;padding:8px;resize:none}
+.row{display:flex;gap:6px}
+button{padding:8px 12px;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+.main{flex:1;display:flex;flex-direction:column}
+iframe{flex:1;border:none;background:#fff}
+#log{flex:1;padding:18px;background:#020617;color:#38bdf8;font-family:monospace;white-space:pre-wrap;display:none;overflow-y:auto}
+</style></head><body>
+<div class="side">
+  <div class="top"><h3 style="color:#818cf8">AI Studio v2</h3><span class="badge" id="st">Connecting...</span></div>
+  <div class="tabs"><button id="tWeb" class="tab active" type="button">Website Builder</button><button id="tAg" class="tab" type="button">Desktop & Code Agent</button></div>
+  <div class="chat" id="chat"><div class="msg ai">Ready! Pick a tab above, enter your prompt, and click Send.</div></div>
+  <div class="comp">
+    <textarea id="inp" placeholder="Describe a website or desktop agent..."></textarea>
+    <div class="row">
+      <button id="sendBtn" style="background:#4f46e5;color:#fff;flex:2" type="button">Send</button>
+      <button id="stopBtn" style="background:#dc2626;color:#fff;flex:1" type="button">Stop</button>
     </div>
   </div>
-  <div class="main">
-    <div class="topbar">
-      <span id="viewTitle" style="font-size:13.5px;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
-      <div class="top-btns">
-        <button id="downloadAgentBtn" class="btn-dl" style="background:#6366f1;display:none;" type="button">Download Agent</button>
-        <button id="newBtn" class="btn-dl" style="background:#334155;" type="button">New</button>
-        <button id="downloadHtmlBtn" class="btn-dl" type="button">Download HTML</button>
-      </div>
-    </div>
-    <iframe id="previewFrame"></iframe>
-    <div id="agentLog">Agent Execution Log Ready...</div>
-  </div>
-
-  <script>
-    window.onerror = function(msg, src, line) {
-      alert('JS Error line ' + line + ': ' + msg);
-    };
-
-    var mode = 'web';
-    var historyList = [];
-    var currentCode = '';
-    var lastAgentFile = '';
-    var imgData = '';
-    var imgMime = '';
-    var abortCtrl = null;
-
-    function setMode(m) {
-      mode = m;
-      document.getElementById('webModeBtn').className = m === 'web' ? 'mode-btn active' : 'mode-btn';
-      document.getElementById('agentModeBtn').className = m === 'agent' ? 'mode-btn active' : 'mode-btn';
-      document.getElementById('previewFrame').style.display = m === 'web' ? 'block' : 'none';
-      document.getElementById('agentLog').style.display = m === 'agent' ? 'block' : 'none';
-      document.getElementById('viewTitle').textContent = m === 'web' ? 'Live Website Preview' : 'Desktop & Code Agent Log';
+</div>
+<div class="main">
+  <div class="top"><span id="ttl">Live Website Preview</span><div class="row"><button id="dlAg" style="background:#6366f1;color:#fff;display:none" type="button">Download Agent</button><button id="dlHtml" style="background:#10b981;color:#fff" type="button">Download HTML</button></div></div>
+  <iframe id="frm"></iframe><div id="log">Agent Execution Log Ready...</div>
+</div>
+<script>
+var mode='web',hist=[],code='',agFile='',ctrl=null;
+function setMode(m){mode=m;document.getElementById('tWeb').className=m==='web'?'tab active':'tab';document.getElementById('tAg').className=m==='agent'?'tab active':'tab';document.getElementById('frm').style.display=m==='web'?'block':'none';document.getElementById('log').style.display=m==='agent'?'block':'none';document.getElementById('ttl').textContent=m==='web'?'Live Website Preview':'Desktop & Code Agent Log';}
+function addMsg(r,t){var c=document.getElementById('chat'),d=document.createElement('div');d.className='msg '+r;d.textContent=t;c.appendChild(d);c.scrollTop=c.scrollHeight;return d;}
+function stopAll(){if(ctrl){try{ctrl.abort()}catch(e){}ctrl=null}var b=document.getElementById('sendBtn');b.disabled=false;b.textContent='Send';addMsg('ai','Stopped.');}
+async function run(){
+  var inp=document.getElementById('inp'),t=inp.value.trim();if(!t)return;
+  addMsg('user',t);hist.push({role:'user',text:t});inp.value='';
+  var b=document.getElementById('sendBtn');b.disabled=true;b.textContent='Working...';
+  ctrl=new AbortController();var tm=setTimeout(function(){if(ctrl)ctrl.abort()},22000);
+  try{
+    var r=await fetch(mode==='web'?'/api/generate':'/api/agent/plan',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(mode==='web'?{message:t,history:hist,current_code:code}:{task:t,history:hist})});
+    clearTimeout(tm);var d=await r.json().catch(function(){return{}});
+    if(!r.ok){addMsg('ai','Error '+r.status+': '+(d.detail||'Retry'));}
+    else if(mode==='web'){addMsg('ai',d.reply||'Done');hist.push({role:'ai',text:d.reply||''});if(d.html){code=d.html;document.getElementById('frm').srcdoc=code;}}
+    else{
+      var bub=addMsg('ai',d.reply||'Plan ready');hist.push({role:'ai',text:d.reply||''});
+      (d.steps||[]).forEach(function(s){
+        var card=document.createElement('div');card.className='card';
+        var sp=document.createElement('span');sp.textContent=s.action+': '+s.target;
+        var ab=document.createElement('button');ab.style.cssText='background:#10b981;color:#fff;padding:4px 9px';ab.textContent='Approve';
+        ab.onclick=async function(){
+          ab.disabled=true;ab.textContent='...';
+          var er=await fetch('/api/agent/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
+          var eo=await er.json();document.getElementById('log').textContent+='\n> '+s.target+'\n'+eo.output+'\n';ab.textContent='Done';
+          if(eo.ok&&s.action==='write_file'){agFile=s.target;var da=document.getElementById('dlAg');da.style.display='inline-block';da.textContent='Download '+s.target;window.location.href='/api/download/'+encodeURIComponent(s.target);}
+        };
+        card.appendChild(sp);card.appendChild(ab);bub.appendChild(card);
+      });
     }
-
-    function appendMsg(role, text) {
-      var box = document.getElementById('chatBox');
-      var div = document.createElement('div');
-      div.className = 'msg ' + role;
-      div.textContent = text;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-      return div;
-    }
-
-    function forceStopNow() {
-      if (abortCtrl) {
-        try { abortCtrl.abort(); } catch (e) {}
-        abortCtrl = null;
-      }
-      var btn = document.getElementById('sendBtn');
-      btn.disabled = false;
-      btn.textContent = 'Send';
-      appendMsg('ai', 'Stopped. Ready for your next prompt.');
-    }
-
-    async function sendMessage() {
-      var box = document.getElementById('promptBox');
-      var text = box.value.trim();
-      if (!text && !imgData) return;
-
-      appendMsg('user', (imgData ? '[Photo] ' : '') + text);
-      historyList.push({ role: 'user', text: text });
-      box.value = '';
-
-      var btn = document.getElementById('sendBtn');
-      btn.disabled = true;
-      btn.textContent = 'Working...';
-
-      if (abortCtrl) { try { abortCtrl.abort(); } catch (e) {} }
-      abortCtrl = new AbortController();
-      var timer = setTimeout(function() { if (abortCtrl) abortCtrl.abort(); }, 25000);
-
-      try {
-        var url = mode === 'web' ? '/api/generate' : '/api/agent/plan';
-        var payload = mode === 'web'
-          ? { message: text, history: historyList, current_code: currentCode, image_data: imgData, image_mime: imgMime }
-          : { task: text, history: historyList };
-        imgData = '';
-        imgMime = '';
-
-        var res = await fetch(url, {
-          method: 'POST',
-          signal: abortCtrl.signal,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        clearTimeout(timer);
-
-        var data = await res.json().catch(function() { return {}; });
-        if (!res.ok) {
-          appendMsg('ai', 'Server error (' + res.status + '): ' + (data.detail || 'Try again'));
-        } else if (mode === 'web') {
-          appendMsg('ai', (data.reply || 'Updated!') + (data.checker ? '\n[' + data.checker + ']' : ''));
-          historyList.push({ role: 'ai', text: data.reply || '' });
-          if (data.html) {
-            currentCode = data.html;
-            document.getElementById('previewFrame').srcdoc = currentCode;
-          }
-        } else {
-          var bubble = appendMsg('ai', (data.reply || 'Plan ready.') + (data.checker ? '\n[' + data.checker + ']' : ''));
-          historyList.push({ role: 'ai', text: data.reply || '' });
-          var steps = data.steps || [];
-          for (var i = 0; i < steps.length; i++) {
-            (function(step) {
-              var card = document.createElement('div');
-              card.className = 'step-card';
-              var head = document.createElement('div');
-              head.className = 'step-head';
-              var lbl = document.createElement('span');
-              lbl.textContent = step.action + ': ' + step.target;
-              var appBtn = document.createElement('button');
-              appBtn.className = 'btn-app';
-              appBtn.type = 'button';
-              appBtn.textContent = 'Approve & Download';
-              appBtn.onclick = async function() {
-                appBtn.disabled = true;
-                appBtn.textContent = 'Running...';
-                var r = await fetch('/api/agent/execute', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(step)
-                });
-                var out = await r.json();
-                var log = document.getElementById('agentLog');
-                log.textContent += '\n> ' + step.action + ' (' + step.target + ')\n' + out.output + '\n';
-                appBtn.textContent = out.ok ? 'Done' : 'Info';
-                if (out.ok && step.action === 'write_file') {
-                  lastAgentFile = step.target;
-                  var dl = document.getElementById('downloadAgentBtn');
+  }catch(e){clearTimeout(tm);if(e.name!=='AbortError')addMsg('ai','Timeout/Net: '+(e.message||e));}
+  finally{b.disabled=false;b.textContent='Send';ctrl=null;}
+}
+document.getElementById('tWeb').onclick=function(){setMode('web')};
+document.getElementById('tAg').onclick=function(){setMode('agent')};
+document.getElementById('sendBtn').onclick=run;
+document.getElementById('stopBtn').onclick=stopAll;
+document.getElementById('dlHtml').onclick=function(){if(!code)return;var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([code],{type:'text/html'}));a.download='site.html';a.click();};
+document.getElementById('dlAg').onclick=function(){if(agFile)window.location.href='/api/download/'+encodeURIComponent(agFile);};
+fetch('/api/health').then(function(r){return r.json()}).then(function(d){document.getElementById('st').textContent=d.groq?'Live':'Online'}).catch(function(){document.getElementById('st').textContent='Offline'});
+</script></body></html>
