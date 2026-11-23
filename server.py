@@ -1,4 +1,4 @@
-import os, json, base64, subprocess, requests
+import os, json, base64, subprocess, urllib.request, urllib.error
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +9,6 @@ from google import genai
 from google.genai import types
 
 load_dotenv()
-client = genai.Client()
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -44,46 +43,62 @@ class AgentOut(BaseModel):
     reply: str
     steps: List[AgentStep]
 
-def groq_json(prompt: str) -> dict:
+def call_groq_builtin(prompt: str) -> dict:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("No GROQ_API_KEY")
-    r = requests.post(
+        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
+    body = json.dumps({
+        "model": "llama-3.3-70b-versatile",
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": "Always respond with a valid JSON object matching the requested keys."},
+            {"role": "user", "content": prompt}
+        ],
+    }).encode("utf-8")
+    req = urllib.request.Request(
         "https://groq.com",
-
-        headers={"Authorization": f"Bearer {gk}", "Content-Type": "application/json"},
-        json={
-            "model": "llama-3.3-70b-versatile",
-            "response_format": {"type": "json_object"},
-            "messages": [{"role": "user", "content": prompt}],
+        data=body,
+        headers={
+            "Authorization": f"Bearer {gk}",
+            "Content-Type": "application/json",
+            "User-Agent": "AI-Studio-Agent/1.0"
         },
-        timeout=20,
+        method="POST",
     )
-    r.raise_for_status()
-    return json.loads(r.json()["choices"][0]["message"]["content"])
-
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        raw = json.loads(resp.read().decode("utf-8"))
+        return json.loads(raw["choices"][0]["message"]["content"])
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
-    contents = [prompt]
-    if img_data and img_mime:
-        try:
-            contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
-        except Exception:
-            pass
-    for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
-        try:
-            res = client.models.generate_content(
-                model=m,
-                contents=contents,
-                config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
-            )
-            return json.loads(res.text), f"Maker: {m} | Checked"
-        except Exception:
-            continue
+    errors = []
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if gemini_key:
+        client = genai.Client(api_key=gemini_key)
+        contents = [prompt]
+        if img_data and img_mime:
+            try:
+                contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
+            except Exception:
+                pass
+        for m in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+            try:
+                res = client.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
+                )
+                return json.loads(res.text), f"Maker: {m} | Verified"
+            except Exception as e:
+                errors.append(f"{m}: {e}")
+    else:
+        errors.append("GEMINI_API_KEY missing")
+
     try:
-        return groq_json(prompt), "Maker: Groq Llama-3.3-70B | Checked"
+        return call_groq_builtin(prompt), "Maker: Groq Llama-3.3-70B | Verified"
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"AI error: {e}")
+        errors.append(f"Groq: {e}")
+
+    raise HTTPException(status_code=503, detail=" | ".join(errors))
 
 @app.get("/")
 def home():
@@ -100,7 +115,7 @@ def download_file(filename: str):
 def generate_site(req: ChatReq):
     hist = "\n".join(f"{m['role']}: {m['text']}" for m in req.history[-8:])
     prompt = (
-        "You are a proactive Senior Web Architect. Return JSON with 'reply' (conversational summary + suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
+        "You are a proactive Senior Web Architect. Return ONLY a JSON object with keys 'reply' (conversational summary + suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
         "All nav links must use #section-id anchors.\n"
         f"History:\n{hist}\nCurrent HTML:\n{req.current_code or '(none)'}\nUser: {req.message}"
     )
@@ -114,7 +129,7 @@ def plan_agent(req: AgentReq):
     prompt = (
         f"You are an autonomous AI Agent & Backup Brain. Environment: {env}. "
         "Anticipate unspoken needs (e.g., if user asks for a desktop toggle assistant on cloud, write a complete standalone Python script via write_file). "
-        "Return JSON with 'reply' and 'steps' (action in ['write_file', 'run_cmd', 'open_app', 'type_text'], target, content).\n"
+        "Return ONLY a JSON object with keys 'reply' (string) and 'steps' (list of objects each with 'action' in ['write_file', 'run_cmd', 'open_app', 'type_text'], 'target', 'content').\n"
         f"History:\n{hist}\nUser: {req.task}"
     )
     data, badge = ask_ai(prompt, AgentOut)
