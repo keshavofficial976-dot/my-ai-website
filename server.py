@@ -140,8 +140,9 @@ def exec_step(step: StepReq):
     try:
         if step.action == "write_file":
             safe = os.path.basename(step.target)
+            clean_code = step.content.replace("\u00d7", "x").replace("\u2013", "-").replace("\u2014", "-")
             with open(safe, "w", encoding="utf-8") as f:
-                f.write(step.content)
+                f.write(clean_code)
             return {"ok": True, "output": f"Saved {safe}"}
         if step.action == "run_cmd":
             if os.name == "nt" and step.target.startswith("python "):
