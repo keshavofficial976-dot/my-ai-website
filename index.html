@@ -107,6 +107,20 @@
     document.addEventListener('DOMContentLoaded', function() {
       let mode = 'web';
       let currentCode = '';
+
+    let currentAbort = null;
+    function forceStopNow() {
+      if (currentAbort) {
+        try { currentAbort.abort(); } catch (e) {}
+        currentAbort = null;
+      }
+      const btn = document.getElementById('sendBtn');
+      const stopB = document.getElementById('forceStopBtn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+      if (stopB) { stopB.style.display = 'none'; }
+      appendMsg('ai', '⏹ Stopped. You can edit or send a new prompt now.');
+    }
+
     let lastAgentFile = '';
     fetch('/api/health').catch(()=>{});
     document.addEventListener('DOMContentLoaded', () => {
@@ -259,6 +273,7 @@
               const res = await fetch('/api/agent/execute', {
                 method: 'POST',
                 signal: activeController ? activeController.signal : undefined,
+          signal: currentAbort ? currentAbort.signal : undefined,
           headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(step)
               });
@@ -293,6 +308,7 @@
             const res = await fetch('/api/generate', {
               method: 'POST',
               signal: activeController ? activeController.signal : undefined,
+          signal: currentAbort ? currentAbort.signal : undefined,
           headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 message: text || 'Build or update the website based on this attached image.',
@@ -324,6 +340,7 @@
             const res = await fetch('/api/agent/plan', {
               method: 'POST',
               signal: activeController ? activeController.signal : undefined,
+          signal: currentAbort ? currentAbort.signal : undefined,
           headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: text, history: chatHistory })
             });
