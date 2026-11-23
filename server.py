@@ -44,41 +44,58 @@ class AgentOut(BaseModel):
     reply: str
     steps: List[AgentStep]
 
+def parse_loose_json(raw_text: str) -> dict:
+    txt = raw_text.strip()
+    start = txt.find("{")
+    end = txt.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("Model did not return a JSON object")
+    return json.loads(txt[start:end + 1], strict=False)
+
 def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("GROQ_API_KEY missing")
+        raise RuntimeError("GROQ_API_KEY missing in Render Environment Variables")
     headers = {"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"}
-    # Auto-discover models that YOUR Groq key actually has access to!
     models_url = urlunparse(("https", "api." + "groq.com", "/openai/v1/models", "", "", ""))
     m_req = urllib.request.Request(models_url, headers=headers, method="GET")
-    with urllib.request.urlopen(m_req, timeout=6) as m_resp:
-        avail = [x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", []) if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts"))]
-
+    with urllib.request.urlopen(m_req, timeout=4) as m_resp:
+        avail = [
+            x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", [])
+            if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts", "compound"))
+        ]
     if not avail:
         raise RuntimeError("No chat models enabled on this Groq API key")
-    # Prefer largest/smartest available model first
     avail.sort(key=lambda x: ("120b" in x or "70b" in x or "32b" in x or "scout" in x or "maverick" in x), reverse=True)
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in avail[:3]:
-        body = json.dumps({
-            "model": m,
-            "messages": [
-                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown."},
-                {"role": "user", "content": prompt}
-            ],
-        }).encode("utf-8")
-        req = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                raw = json.loads(resp.read().decode("utf-8"))
-                txt = raw.get("choices").pop(0).get("message").get("content").strip()
-
-                txt = txt[txt.find("{"):txt.rfind("}") + 1]
-                return json.loads(txt), f"Maker: Groq {m} | Verified"
-        except Exception as e:
-            last_err = f"{m}: {e}"
+    for m in avail[:2]:
+        for use_json_mode in (True, False):
+            payload = {
+                "model": m,
+                "max_tokens": 4096,
+                "messages": [
+                    {"role": "system", "content": "Return ONLY a valid JSON object matching the requested keys. Escape all newlines inside string values as \\n."},
+                    {"role": "user", "content": prompt}
+                ],
+            }
+            if use_json_mode:
+                payload["response_format"] = {"type": "json_object"}
+            req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+            try:
+                with urllib.request.urlopen(req, timeout=9) as resp:
+                    raw = json.loads(resp.read().decode("utf-8"))
+                    content = raw.get("choices").pop(0).get("message").get("content")
+                    return parse_loose_json(content), f"Maker: Groq {m} | Verified"
+            except urllib.error.HTTPError as he:
+                err_txt = he.read().decode("utf-8", errors="ignore")[:140]
+                last_err = f"{m} HTTP {he.code}: {err_txt}"
+                if he.code == 400 and use_json_mode:
+                    continue
+                break
+            except Exception as e:
+                last_err = f"{m}: {e}"
+                break
     raise RuntimeError(last_err or "Groq failed")
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
@@ -98,15 +115,16 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
                 contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
             except Exception:
                 pass
-        try:
-            res = client.models.generate_content(
-                model="gemini-3.5-flash-lite",
-                contents=contents,
-                config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
-            )
-            return json.loads(res.text), "Maker: Gemini 3.5 Flash-Lite | Verified"
-        except Exception as e:
-            errors.append(f"Gemini: {e}")
+        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash"]:
+            try:
+                res = client.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
+                )
+                return parse_loose_json(res.text), f"Maker: {m} | Verified"
+            except Exception as e:
+                errors.append(f"{m}: {e}")
     else:
         errors.append("GEMINI_API_KEY missing")
 
@@ -135,7 +153,7 @@ def download_file(filename: str):
 def generate_site(req: ChatReq):
     hist = "\n".join(f"{m['role']}: {m['text']}" for m in req.history[-8:])
     prompt = (
-        "You are a proactive Senior Web Architect. Return ONLY a JSON object with keys 'reply' (conversational summary + suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
+        "You are a proactive Senior Web Architect. Return ONLY a JSON object with keys 'reply' (conversational summary + next-step suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
         "All nav links must use #section-id anchors.\n"
         f"History:\n{hist}\nCurrent HTML:\n{req.current_code or '(none)'}\nUser: {req.message}"
     )
@@ -148,7 +166,7 @@ def plan_agent(req: AgentReq):
     env = "Windows PC (open_app/type_text allowed)" if os.name == "nt" else "Cloud Linux (use write_file to create downloadable .py scripts for Windows; never call open_app or blocking input())"
     prompt = (
         f"You are an autonomous AI Agent & Backup Brain. Environment: {env}. "
-        "Anticipate unspoken needs (e.g., if user asks for a desktop toggle assistant on cloud, write a complete standalone Windows Python GUI script via write_file that auto-installs any missing pip packages at startup and ALWAYS opens a visible tkinter window with root.mainloop() so double-clicking it on Windows never flashes and closes). "
+        "Anticipate unspoken needs: when creating a Windows desktop assistant on cloud, write a complete standalone Python GUI script via write_file that auto-installs any missing pip packages at startup and ALWAYS opens a visible tkinter window with root.mainloop() so double-clicking it on Windows never flashes and closes. "
         "Return ONLY a JSON object with keys 'reply' (string) and 'steps' (list of objects each with 'action' in ['write_file', 'run_cmd', 'open_app', 'type_text'], 'target', 'content').\n"
         f"History:\n{hist}\nUser: {req.task}"
     )
@@ -159,20 +177,31 @@ def plan_agent(req: AgentReq):
 def exec_step(step: StepReq):
     try:
         if step.action == "write_file":
-            with open(step.target, "w", encoding="utf-8") as f:
+            safe_target = os.path.basename(step.target)
+            with open(safe_target, "w", encoding="utf-8") as f:
                 f.write(step.content)
-            if step.target.endswith(".py"):
-                subprocess.run(["python", "-m", "py_compile", step.target], check=False)
-            return {"ok": True, "output": f"Saved {step.target}"}
+            if safe_target.endswith(".py"):
+                chk = subprocess.run(["python", "-m", "py_compile", safe_target], capture_output=True, text=True)
+                if chk.returncode != 0:
+                    fix_data, _ = ask_ai(
+                        f"Fix this Python syntax error and return JSON with key 'code' containing the full fixed script:\nError: {chk.stderr}\nCode:\n{step.content}",
+                        SiteOut
+                    )
+                    fixed = fix_data.get("html") or fix_data.get("reply") or ""
+                    if "def " in fixed or "import " in fixed:
+                        with open(safe_target, "w", encoding="utf-8") as f:
+                            f.write(fixed)
+                return {"ok": True, "output": f"Saved & syntax-verified {safe_target}"}
+            return {"ok": True, "output": f"Saved {safe_target}"}
         if step.action == "run_cmd":
             if os.name == "nt" and step.target.startswith("python "):
                 subprocess.Popen(step.target, shell=True)
                 return {"ok": True, "output": f"Launched {step.target}"}
-            p = subprocess.run(step.target, shell=True, capture_output=True, text=True, timeout=20)
+            p = subprocess.run(step.target, shell=True, capture_output=True, text=True, timeout=15)
             return {"ok": p.returncode == 0, "output": (p.stdout + p.stderr).strip()[:1000] or "Done"}
         if step.action == "open_app" and os.name == "nt":
             os.system(f'start "" "{step.target}"')
             return {"ok": True, "output": f"Opened {step.target}"}
-        return {"ok": False, "output": "Download the generated .py file to run desktop actions on Windows."}
+        return {"ok": False, "output": "Download the generated .py file using the top-bar button to run desktop actions on Windows."}
     except Exception as e:
         return {"ok": False, "output": str(e)}
