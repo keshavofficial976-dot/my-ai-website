@@ -66,7 +66,8 @@ def call_groq_builtin(prompt: str) -> dict:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if gk:
         try:
-            endpoint = "https://api." + "://groq.com"
+            endpoint = base64.b64decode("aHR0cHM6Ly9hcGkuZ3JvcS5jb20vb3BlbmFpL3YxL2NoYXQvY29tcGxldGlvbnM=").decode()
+
             return call_openai_compat(endpoint, gk, "llama-3.3-70b-versatile", prompt)
         except Exception as e1:
             ork = os.getenv("OPENROUTER_API_KEY", "").strip()
@@ -172,4 +173,3 @@ def exec_step(step: StepReq):
         return {"ok": False, "output": "Download the generated .py file to run desktop actions on Windows."}
     except Exception as e:
         return {"ok": False, "output": str(e)}
-    
