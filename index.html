@@ -3,55 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Website & Desktop Agent Studio</title>
+  <title>AI Studio &amp; Desktop Agent</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
-    .sidebar { width: 410px; min-width: 340px; background: #1e293b; border-right: 1px solid #334155; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .sidebar { width: 420px; min-width: 340px; background: #1e293b; border-right: 1px solid #334155; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .header { display: flex; justify-content: space-between; align-items: center; }
     .header h1 { font-size: 1.1rem; color: #818cf8; }
     .mode-tabs { display: flex; gap: 6px; background: #0f172a; padding: 4px; border-radius: 8px; }
-    .tab-btn { flex: 1; padding: 7px; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: transparent; color: #94a3b8; }
-    .tab-btn.active { background: #4f46e5; color: #fff; }
+    .tab { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; background: transparent; color: #94a3b8; }
+    .tab.active { background: #4f46e5; color: #fff; }
     .owner-row { display: flex; gap: 6px; }
-    .owner-row input { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.76rem; outline: none; }
-    .chips { display: flex; gap: 5px; flex-wrap: wrap; }
-    .chip { background: #334155; color: #e2e8f0; border: none; padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
+    .owner-row input { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.78rem; outline: none; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { background: #334155; color: #e2e8f0; border: none; padding: 5px 9px; border-radius: 6px; font-size: 0.73rem; cursor: pointer; }
     .chip:hover { background: #475569; }
     .chat-box { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.83rem; line-height: 1.5; }
-    .msg { padding: 9px 12px; border-radius: 10px; max-width: 92%; word-wrap: break-word; }
+    .msg { padding: 9px 12px; border-radius: 10px; max-width: 94%; word-wrap: break-word; }
     .msg-user { align-self: flex-end; background: #4f46e5; color: #fff; }
     .msg-ai { align-self: flex-start; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
-    .step-card { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
-    .step-actions { display: flex; gap: 6px; }
-    .btn-approve { background: #10b981; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-    .btn-skip { background: #475569; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
-    .input-area { display: flex; flex-direction: column; gap: 7px; }
-    textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 9px 11px; border-radius: 8px; font-size: 0.86rem; outline: none; resize: none; }
-    .actions { display: flex; gap: 6px; }
-    .btn { padding: 9px 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
-    .btn-mic { background: #334155; color: #fff; flex: 1; }
+    .qa-badge { display: inline-block; margin-top: 6px; font-size: 0.72rem; background: #064e3b; color: #6ee7b7; padding: 2px 7px; border-radius: 4px; }
+    .step-card { background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 10px; margin-top: 6px; }
+    .step-btn { margin-top: 6px; background: #10b981; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.76rem; font-weight: 600; cursor: pointer; }
+    .input-area { display: flex; flex-direction: column; gap: 8px; }
+    textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 8px; font-size: 0.86rem; outline: none; resize: none; }
+    .actions { display: flex; gap: 8px; }
+    .btn { padding: 10px 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.84rem; cursor: pointer; }
+    .btn-sec { background: #334155; color: #fff; flex: 1; }
+    .btn-sec:hover { background: #475569; }
     .btn-send { background: #4f46e5; color: #fff; flex: 2; }
+    .btn-send:hover { background: #4338ca; }
     .btn-send:disabled { opacity: 0.6; cursor: wait; }
     .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
     .topbar { height: 52px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
     .top-btns { display: flex; gap: 8px; }
-    .btn-reset { background: #334155; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-    .btn-download { background: #10b981; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .btn-top { background: #334155; color: #fff; border: none; padding: 7px 12px; border-radius: 7px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .btn-dl { background: #10b981; }
     iframe { flex: 1; width: 100%; border: none; background: #fff; }
-    .agent-log { flex: 1; padding: 24px; background: #020617; color: #38bdf8; font-family: monospace; font-size: 0.88rem; overflow-y: auto; display: none; white-space: pre-wrap; }
+    .console-view { flex: 1; background: #020617; color: #38bdf8; padding: 20px; font-family: monospace; font-size: 0.85rem; overflow-y: auto; display: none; white-space: pre-wrap; }
+    @media (max-width: 768px) { body { flex-direction: column; overflow: auto; height: auto; } .sidebar { width: 100%; height: 65vh; } .main { height: 65vh; } }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <div class="header">
       <h1>AI Studio &amp; Agent</h1>
-      <span style="font-size:0.72rem;color:#34d399;">● Live Data + Desktop</span>
+      <span style="font-size:0.72rem;color:#34d399;">● Maker-Checker Active</span>
     </div>
 
     <div class="mode-tabs">
-      <button id="tabWeb" class="tab-btn active" onclick="switchMode('web')">Website Builder</button>
-      <button id="tabAgent" class="tab-btn" onclick="switchMode('agent')">Desktop &amp; Code Agent</button>
+      <button id="tabWeb" class="tab active" type="button">Website Builder</button>
+      <button id="tabAgent" class="tab" type="button">Desktop &amp; Code Agent</button>
     </div>
 
     <div class="owner-row" id="ownerRow">
@@ -60,225 +62,270 @@
     </div>
 
     <div class="chips" id="webChips">
-      <button class="chip" onclick="quickSend('Build a live crypto and Indian stock market tracker using real-time APIs')">Live Market Site</button>
-      <button class="chip" onclick="quickSend('Build a modern bakery website with menu and order form')">Bakery</button>
-      <button class="chip" onclick="quickSend('Build a live weather dashboard for Surat, Gujarat')">Live Weather</button>
+      <button class="chip" type="button" data-prompt="Build a live crypto and gold investment dashboard fetching real-time prices">Live Finance/Gold</button>
+      <button class="chip" type="button" data-prompt="Build a modern bakery website with menu and order form">Bakery</button>
+      <button class="chip" type="button" data-prompt="Build a travel agency website with 6D/5N packages">Travel</button>
     </div>
 
     <div class="chips" id="agentChips" style="display:none;">
-      <button class="chip" onclick="quickSend('Open Notepad and type a daily task checklist')">Open Notepad &amp; Type</button>
-      <button class="chip" onclick="quickSend('Create a Python script hello_auto.py that prints system time and run it')">Write &amp; Run Python</button>
-      <button class="chip" onclick="quickSend('List all files in my current folder')">Check Folder Files</button>
+      <button class="chip" type="button" data-prompt="Open Notepad and type Hello from my AI Agent">Open Notepad &amp; Type</button>
+      <button class="chip" type="button" data-prompt="Create a Python script hello.py that prints system info and run it">Build &amp; Run Script</button>
     </div>
 
     <div class="chat-box" id="chatBox">
-      <div class="msg msg-ai">Hi! Switch between <b>Website Builder</b> (with live Google Search &amp; live API data) and <b>Desktop &amp; Code Agent</b> (controls files, terminal &amp; Windows apps with your approval).</div>
+      <div class="msg msg-ai">Hi! Switch between <b>Website Builder</b> (with live Google Search data) and <b>Desktop &amp; Code Agent</b> (to control Windows apps and build files) above!</div>
     </div>
 
     <div class="input-area">
-      <div id="imgPreviewBar" style="display:none;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #475569;padding:5px 9px;border-radius:8px;font-size:0.76rem;color:#a5b4fc;">
+      <div id="imgPreviewBar" style="display:none;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #475569;padding:6px 10px;border-radius:8px;font-size:0.78rem;color:#a5b4fc;">
         <span id="imgFileName">Photo attached</span>
-        <button onclick="clearImage()" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">✕</button>
+        <button id="clearImgBtn" type="button" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">Remove</button>
       </div>
-      <input type="file" id="imgInput" accept="image/*" style="display:none;" onchange="handleImage(event)">
-      <textarea id="prompt" rows="2" placeholder="Describe your website or desktop task (Enter to send)..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <input type="file" id="imgInput" accept="image/*" style="display:none;">
+      <textarea id="prompt" rows="2" placeholder="Describe a website or desktop task..."></textarea>
       <div class="actions">
-        <button class="btn btn-mic" onclick="document.getElementById('imgInput').click()">+ Photo</button>
-        <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
-        <button id="sendBtn" class="btn btn-send" onclick="sendMessage()">Send</button>
+        <button id="photoBtn" class="btn btn-sec" type="button">+ Photo</button>
+        <button id="micBtn" class="btn btn-sec" type="button">Speak</button>
+        <button id="sendBtn" class="btn btn-send" type="button">Send</button>
       </div>
     </div>
   </div>
 
   <div class="main">
     <div class="topbar">
-      <span id="rightTitle" style="font-size:0.88rem;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
+      <span id="panelTitle" style="font-size:0.88rem;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
       <div class="top-btns">
-        <button class="btn-reset" onclick="location.reload()">Reset</button>
-        <button class="btn-download" id="dlBtn" onclick="downloadSite()">Download Website</button>
+        <button id="resetBtn" class="btn-top" type="button">New</button>
+        <button id="dlBtn" class="btn-top btn-dl" type="button">Download HTML</button>
       </div>
     </div>
-    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Live Data Website &amp; Desktop Agent</h2><p>Ask for a live stock/weather site or switch to <b>Desktop &amp; Code Agent</b> mode on the left!</p></div></body></html>"></iframe>
-    <div id="agentLog" class="agent-log">Desktop &amp; Code Agent Terminal Log Ready...
-</div>
+    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Ready to Build</h2><p>Use Website Builder for live-data sites, or switch to Desktop &amp; Code Agent to automate tasks!</p></div></body></html>"></iframe>
+    <div id="consoleView" class="console-view">Agent Execution Log Ready...</div>
   </div>
 
   <script>
-    let mode = 'web';
-    let currentCode = '';
-    let chatHistory = [];
-    let selectedImgData = '';
-    let selectedImgMime = '';
+    document.addEventListener('DOMContentLoaded', function() {
+      let mode = 'web';
+      let currentCode = '';
+      let chatHistory = [];
+      let selectedImgData = '';
+      let selectedImgMime = '';
 
-    function switchMode(newMode) {
-      mode = newMode;
-      document.getElementById('tabWeb').className = 'tab-btn ' + (mode === 'web' ? 'active' : '');
-      document.getElementById('tabAgent').className = 'tab-btn ' + (mode === 'agent' ? 'active' : '');
-      document.getElementById('ownerRow').style.display = mode === 'web' ? 'flex' : 'none';
-      document.getElementById('webChips').style.display = mode === 'web' ? 'flex' : 'none';
-      document.getElementById('agentChips').style.display = mode === 'agent' ? 'flex' : 'none';
-      document.getElementById('preview').style.display = mode === 'web' ? 'block' : 'none';
-      document.getElementById('agentLog').style.display = mode === 'agent' ? 'block' : 'none';
-      document.getElementById('dlBtn').style.display = mode === 'web' ? 'inline-block' : 'none';
-      document.getElementById('rightTitle').textContent = mode === 'web' ? 'Live Website Preview' : 'Desktop & Code Agent Execution Log';
-    }
+      const tabWeb = document.getElementById('tabWeb');
+      const tabAgent = document.getElementById('tabAgent');
+      const ownerRow = document.getElementById('ownerRow');
+      const webChips = document.getElementById('webChips');
+      const agentChips = document.getElementById('agentChips');
+      const preview = document.getElementById('preview');
+      const consoleView = document.getElementById('consoleView');
+      const panelTitle = document.getElementById('panelTitle');
+      const promptBox = document.getElementById('prompt');
+      const chatBox = document.getElementById('chatBox');
+      const sendBtn = document.getElementById('sendBtn');
+      const micBtn = document.getElementById('micBtn');
+      const photoBtn = document.getElementById('photoBtn');
+      const imgInput = document.getElementById('imgInput');
+      const clearImgBtn = document.getElementById('clearImgBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const dlBtn = document.getElementById('dlBtn');
 
-    function handleImage(e) {
-      const file = e.target.files.at(0);
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        selectedImgMime = file.type || 'image/png';
-        selectedImgData = reader.result.split(',').at(1);
-        document.getElementById('imgFileName').textContent = '📎 ' + file.name;
-        document.getElementById('imgPreviewBar').style.display = 'flex';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearImage() {
-      selectedImgData = '';
-      selectedImgMime = '';
-      document.getElementById('imgInput').value = '';
-      document.getElementById('imgPreviewBar').style.display = 'none';
-    }
-
-    function appendMsg(role, text) {
-      const box = document.getElementById('chatBox');
-      const div = document.createElement('div');
-      div.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-ai');
-      div.textContent = text;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-      chatHistory.push({ role, text });
-    }
-
-    function logTerminal(line) {
-      const log = document.getElementById('agentLog');
-      log.textContent += '
-' + line;
-      log.scrollTop = log.scrollHeight;
-    }
-
-    function quickSend(text) {
-      document.getElementById('prompt').value = text;
-      sendMessage();
-    }
-
-    function startVoice() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) return alert('Voice dictation works best in Chrome or Edge.');
-      const rec = new SR();
-      const btn = document.getElementById('micBtn');
-      btn.textContent = 'Listening...';
-      rec.onresult = (e) => { document.getElementById('prompt').value = e.results.at(0).at(0).transcript; };
-      rec.onend = () => { btn.textContent = 'Speak'; };
-      rec.start();
-    }
-
-    async function runApprovedStep(step, btnEl) {
-      btnEl.disabled = true;
-      btnEl.textContent = 'Running...';
-      logTerminal('▶ Executing: ' + step.description);
-      try {
-        const res = await fetch('/api/agent/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(step)
-        });
-        const data = await res.json();
-        logTerminal((data.ok ? '✅ ' : '⚠️ ') + data.output);
-        btnEl.textContent = data.ok ? 'Done ✓' : 'Failed';
-      } catch (e) {
-        logTerminal('❌ Execution error.');
-        btnEl.textContent = 'Error';
+      function switchMode(newMode) {
+        mode = newMode;
+        tabWeb.className = mode === 'web' ? 'tab active' : 'tab';
+        tabAgent.className = mode === 'agent' ? 'tab active' : 'tab';
+        ownerRow.style.display = mode === 'web' ? 'flex' : 'none';
+        webChips.style.display = mode === 'web' ? 'flex' : 'none';
+        agentChips.style.display = mode === 'agent' ? 'flex' : 'none';
+        preview.style.display = mode === 'web' ? 'block' : 'none';
+        consoleView.style.display = mode === 'agent' ? 'block' : 'none';
+        panelTitle.textContent = mode === 'web' ? 'Live Website Preview' : 'Desktop & Code Agent Log';
       }
-    }
 
-    async function sendMessage() {
-      const box = document.getElementById('prompt');
-      const text = box.value.trim();
-      const btn = document.getElementById('sendBtn');
-      if (!text && !selectedImgData) return;
+      tabWeb.addEventListener('click', function() { switchMode('web'); });
+      tabAgent.addEventListener('click', function() { switchMode('agent'); });
 
-      box.value = '';
-      appendMsg('user', (selectedImgData ? '[Photo] ' : '') + (text || 'Build/update from image'));
-      btn.disabled = true;
-      btn.textContent = 'Thinking...';
+      document.querySelectorAll('.chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          promptBox.value = chip.getAttribute('data-prompt') || '';
+          sendMessage();
+        });
+      });
 
-      const imgSnap = selectedImgData;
-      const mimeSnap = selectedImgMime;
-      clearImage();
+      photoBtn.addEventListener('click', function() { imgInput.click(); });
 
-      try {
-        if (mode === 'web') {
-          const res = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: text || 'Build or update the website based on this attached image.',
-              history: chatHistory,
-              current_code: currentCode,
-              owner_email: document.getElementById('ownerEmail').value,
-              owner_whatsapp: document.getElementById('ownerWhatsapp').value,
-              image_data: imgSnap,
-              image_mime: mimeSnap
-            })
+      imgInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function() {
+          const parts = reader.result.split(',');
+          selectedImgMime = file.type || 'image/png';
+          selectedImgData = parts[1];
+          document.getElementById('imgFileName').textContent = file.name;
+          document.getElementById('imgPreviewBar').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function clearImage() {
+        selectedImgData = '';
+        selectedImgMime = '';
+        imgInput.value = '';
+        document.getElementById('imgPreviewBar').style.display = 'none';
+      }
+      clearImgBtn.addEventListener('click', clearImage);
+
+      micBtn.addEventListener('click', function() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+          alert('Voice dictation works in Google Chrome or Microsoft Edge.');
+          return;
+        }
+        const rec = new SR();
+        micBtn.textContent = 'Listening...';
+        rec.onresult = function(e) {
+          promptBox.value = e.results[0][0].transcript;
+        };
+        rec.onerror = function(e) {
+          alert('Mic error: ' + e.error + '. Please allow microphone access in Chrome.');
+        };
+        rec.onend = function() {
+          micBtn.textContent = 'Speak';
+        };
+        rec.start();
+      });
+
+      resetBtn.addEventListener('click', function() { location.reload(); });
+
+      dlBtn.addEventListener('click', function() {
+        if (!currentCode) {
+          alert('Create a website first!');
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([currentCode], { type: 'text/html' }));
+        a.download = 'my-website.html';
+        a.click();
+      });
+
+      function appendMsg(role, text, badgeText) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-ai');
+        div.textContent = text;
+        if (badgeText) {
+          const badge = document.createElement('div');
+          badge.className = 'qa-badge';
+          badge.textContent = 'Checked by: ' + badgeText;
+          div.appendChild(document.createElement('br'));
+          div.appendChild(badge);
+        }
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        chatHistory.push({ role: role, text: text });
+      }
+
+      function appendAgentSteps(steps) {
+        steps.forEach(function(step) {
+          const card = document.createElement('div');
+          card.className = 'step-card';
+          const title = document.createElement('div');
+          title.textContent = step.description || (step.action + ': ' + step.target);
+          const btn = document.createElement('button');
+          btn.className = 'step-btn';
+          btn.type = 'button';
+          btn.textContent = 'Approve & Run';
+          btn.addEventListener('click', async function() {
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            try {
+              const res = await fetch('/api/agent/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(step)
+              });
+              const data = await res.json();
+              consoleView.textContent += '\n> ' + step.action + ' (' + step.target + ')\n' + data.output + '\n';
+              btn.textContent = data.ok ? 'Done' : 'Failed';
+            } catch (err) {
+              btn.textContent = 'Error';
+            }
           });
-          if (res.ok) {
-            const data = await res.json();
-            appendMsg('ai', data.reply);
-            if (data.html) {
-              currentCode = data.html;
-              document.getElementById('preview').srcdoc = data.html;
+          card.appendChild(title);
+          card.appendChild(btn);
+          chatBox.appendChild(card);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const text = promptBox.value.trim();
+        if (!text && !selectedImgData) return;
+
+        promptBox.value = '';
+        appendMsg('user', (selectedImgData ? '[Photo attached] ' : '') + (text || 'Build or update based on this photo.'));
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Working...';
+
+        try {
+          if (mode === 'web') {
+            const imgSnap = selectedImgData;
+            const mimeSnap = selectedImgMime;
+            clearImage();
+            const res = await fetch('/api/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: text || 'Build or update the website based on this attached image.',
+                history: chatHistory,
+                current_code: currentCode,
+                owner_email: document.getElementById('ownerEmail').value,
+                owner_whatsapp: document.getElementById('ownerWhatsapp').value,
+                image_data: imgSnap,
+                image_mime: mimeSnap
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              appendMsg('ai', data.reply, data.verified_by);
+              if (data.html) {
+                currentCode = data.html;
+                preview.srcdoc = data.html;
+              }
+            } else {
+              appendMsg('ai', 'AI server is busy right now—please try again.');
             }
           } else {
-            appendMsg('ai', 'AI server busy—please try again.');
-          }
-        } else {
-          const res = await fetch('/api/agent/plan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task: text })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            appendMsg('ai', data.reply);
-            const chatBox = document.getElementById('chatBox');
-            (data.steps || []).forEach((step) => {
-              const card = document.createElement('div');
-              card.className = 'step-card';
-              card.innerHTML = '<div><b>Step:</b> ' + step.description + '</div><div style="font-size:0.74rem;color:#94a3b8;">Action: ' + step.action_type + ' → ' + step.target + '</div>';
-              const actions = document.createElement('div');
-              actions.className = 'step-actions';
-              const appBtn = document.createElement('button');
-              appBtn.className = 'btn-approve';
-              appBtn.textContent = 'Approve & Run';
-              appBtn.onclick = () => runApprovedStep(step, appBtn);
-              actions.appendChild(appBtn);
-              card.appendChild(actions);
-              chatBox.appendChild(card);
-              chatBox.scrollTop = chatBox.scrollHeight;
+            const res = await fetch('/api/agent/plan', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ task: text, history: chatHistory })
             });
-          } else {
-            appendMsg('ai', 'Could not plan desktop task—please try again.');
+            if (res.ok) {
+              const data = await res.json();
+              appendMsg('ai', data.reply, data.verified_by);
+              if (data.steps && data.steps.length) {
+                appendAgentSteps(data.steps);
+              }
+            } else {
+              appendMsg('ai', 'Could not create automation plan—please retry.');
+            }
           }
+        } catch (err) {
+          appendMsg('ai', 'Connection error—make sure your server is running.');
         }
-      } catch (e) {
-        appendMsg('ai', 'Connection error—check server.');
+
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
       }
 
-      btn.disabled = false;
-      btn.textContent = 'Send';
-    }
-
-    function downloadSite() {
-      if (!currentCode) return alert('Create a website first!');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([currentCode], { type: 'text/html' }));
-      a.download = 'my-website.html';
-      a.click();
-    }
+      sendBtn.addEventListener('click', sendMessage);
+      promptBox.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    });
   </script>
 </body>
 </html>
