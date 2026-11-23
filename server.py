@@ -139,7 +139,7 @@ def plan_agent(req: AgentReq):
     env = "Windows PC (open_app/type_text allowed)" if os.name == "nt" else "Cloud Linux (use write_file to create downloadable .py scripts for Windows; never call open_app or blocking input())"
     prompt = (
         f"You are an autonomous AI Agent & Backup Brain. Environment: {env}. "
-        "Anticipate unspoken needs (e.g., if user asks for a desktop toggle assistant on cloud, write a complete standalone Python script via write_file). "
+        "Anticipate unspoken needs (e.g., if user asks for a desktop toggle assistant on cloud, write a complete standalone Windows Python GUI script via write_file that auto-installs any missing pip packages at startup and ALWAYS opens a visible tkinter window with root.mainloop() so double-clicking it on Windows never flashes and closes). "
         "Return ONLY a JSON object with keys 'reply' (string) and 'steps' (list of objects each with 'action' in ['write_file', 'run_cmd', 'open_app', 'type_text'], 'target', 'content').\n"
         f"History:\n{hist}\nUser: {req.task}"
     )

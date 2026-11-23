@@ -107,6 +107,16 @@
     document.addEventListener('DOMContentLoaded', function() {
       let mode = 'web';
       let currentCode = '';
+    let lastAgentFile = '';
+    document.addEventListener('DOMContentLoaded', () => {
+      const agBtn = document.getElementById('downloadAgentBtn');
+      if (agBtn) {
+        agBtn.addEventListener('click', () => {
+          if (!lastAgentFile) return alert('Generate an agent script first!');
+          window.location.href = '/api/download/' + encodeURIComponent(lastAgentFile);
+        });
+      }
+    });
     let activeController = null;
     function stopRequest() {
       if (activeController) {
@@ -293,7 +303,7 @@
                 image_mime: mimeSnap
               })
             });
-            if (res.ok) {
+            if (res.ok) { if (step.action === 'write_file') { lastAgentFile = step.target; const b = document.getElementById('downloadAgentBtn'); if (b) { b.style.display = 'inline-block'; b.textContent = '⬇ Download ' + step.target; } }
           if (step.action === 'write_file') {
             const a = document.createElement('a');
             a.href = '/api/download/' + encodeURIComponent(step.target);
@@ -316,7 +326,7 @@
           headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: text, history: chatHistory })
             });
-            if (res.ok) {
+            if (res.ok) { if (step.action === 'write_file') { lastAgentFile = step.target; const b = document.getElementById('downloadAgentBtn'); if (b) { b.style.display = 'inline-block'; b.textContent = '⬇ Download ' + step.target; } }
               const data = await res.json();
               appendMsg('ai', data.reply, data.verified_by);
               if (data.steps && data.steps.length) {
