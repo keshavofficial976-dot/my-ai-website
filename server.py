@@ -35,6 +35,7 @@ class ChatRequest(BaseModel):
     image_mime: str = ""
 
 class AgentPlanRequest(BaseModel):
+    goal: str = ''
     task: str
     history: List[Dict[str, str]] = []
 
