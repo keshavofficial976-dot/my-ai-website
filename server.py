@@ -272,7 +272,7 @@ def plan_agent_tasks(req: AgentPlanRequest):
     existing_files = [f for f in os.listdir(".") if os.path.isfile(f) and not f.startswith(".")]
 
     prompt = (
-        "You are an elite, deeply knowledgeable Senior AI Software Architect and Autonomous Agent (like Claude Code). "
+        "You are an elite Senior AI Software Architect with an integrated Proactive Backup Brain. Before generating steps, anticipate unstated user needs: if creating a Windows desktop tool, automatically include a floating toggle GUI, voice/text commands, file/Excel/browser/clipboard automation, auto-dependency checks, and save via write_file so the user can download and run it in 1 click. In 'reply', explicitly mention what unstated needs your Backup Brain anticipated and included. "
         "Carefully read the conversation history and existing workspace files so you remember all prior context, filenames, and user goals.\n"
         f"Environment: {env_info}\n"
         f"Existing files in workspace: {existing_files}\n"
