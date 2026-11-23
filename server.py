@@ -59,7 +59,8 @@ def groq_json(prompt: str) -> dict:
         timeout=20,
     )
     r.raise_for_status()
-    return json.loads(r.json()["choices"]["message"]["content"])
+    return json.loads(r.json()["choices"][0]["message"]["content"])
+
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     contents = [prompt]
