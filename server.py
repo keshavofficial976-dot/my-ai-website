@@ -46,11 +46,11 @@ class AgentOut(BaseModel):
 
 def parse_loose_json(raw_text: str) -> dict:
     txt = raw_text.strip()
-    start = txt.find("{")
-    end = txt.rfind("}")
-    if start == -1 or end == -1:
-        raise ValueError("Model did not return a JSON object")
-    return json.loads(txt[start:end + 1], strict=False)
+    s = txt.find("{")
+    e = txt.rfind("}")
+    if s == -1 or e == -1:
+        raise ValueError("No JSON object in response")
+    return json.loads(txt[s:e + 1], strict=False)
 
 def call_groq_fast(prompt: str) -> tuple[dict, str]:
     gk = os.getenv("GROQ_API_KEY", "").strip()
@@ -60,26 +60,24 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
     models_url = urlunparse(("https", "api." + "groq.com", "/openai/v1/models", "", "", ""))
     m_req = urllib.request.Request(models_url, headers=headers, method="GET")
     with urllib.request.urlopen(m_req, timeout=4) as m_resp:
-        avail = [
-            x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", [])
-            if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts", "compound"))
-        ]
+        data_list = json.loads(m_resp.read().decode("utf-8")).get("data", [])
+        avail = [x["id"] for x in data_list if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts", "compound"))]
     if not avail:
-        raise RuntimeError("No chat models enabled on this Groq API key")
+        raise RuntimeError("No chat models enabled on this Groq key")
     avail.sort(key=lambda x: ("120b" in x or "70b" in x or "32b" in x or "scout" in x or "maverick" in x), reverse=True)
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
     for m in avail[:2]:
-        for use_json_mode in (True, False):
+        for use_json in (True, False):
             payload = {
                 "model": m,
                 "max_tokens": 4096,
                 "messages": [
-                    {"role": "system", "content": "Return ONLY a valid JSON object matching the requested keys. Escape all newlines inside string values as \\n."},
+                    {"role": "system", "content": "Return ONLY a valid JSON object matching the requested keys. Escape newlines as \\n."},
                     {"role": "user", "content": prompt}
                 ],
             }
-            if use_json_mode:
+            if use_json:
                 payload["response_format"] = {"type": "json_object"}
             req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
             try:
@@ -90,7 +88,7 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
             except urllib.error.HTTPError as he:
                 err_txt = he.read().decode("utf-8", errors="ignore")[:140]
                 last_err = f"{m} HTTP {he.code}: {err_txt}"
-                if he.code == 400 and use_json_mode:
+                if he.code == 400 and use_json:
                     continue
                 break
             except Exception as e:
@@ -153,7 +151,7 @@ def download_file(filename: str):
 def generate_site(req: ChatReq):
     hist = "\n".join(f"{m['role']}: {m['text']}" for m in req.history[-8:])
     prompt = (
-        "You are a proactive Senior Web Architect. Return ONLY a JSON object with keys 'reply' (conversational summary + next-step suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
+        "You are a proactive Senior Web Architect. Return ONLY a JSON object with keys 'reply' (conversational summary + suggestions) and 'html' (complete single-file HTML/CSS/JS if building/updating, or '' if just chatting). "
         "All nav links must use #section-id anchors.\n"
         f"History:\n{hist}\nCurrent HTML:\n{req.current_code or '(none)'}\nUser: {req.message}"
     )
@@ -180,18 +178,6 @@ def exec_step(step: StepReq):
             safe_target = os.path.basename(step.target)
             with open(safe_target, "w", encoding="utf-8") as f:
                 f.write(step.content)
-            if safe_target.endswith(".py"):
-                chk = subprocess.run(["python", "-m", "py_compile", safe_target], capture_output=True, text=True)
-                if chk.returncode != 0:
-                    fix_data, _ = ask_ai(
-                        f"Fix this Python syntax error and return JSON with key 'code' containing the full fixed script:\nError: {chk.stderr}\nCode:\n{step.content}",
-                        SiteOut
-                    )
-                    fixed = fix_data.get("html") or fix_data.get("reply") or ""
-                    if "def " in fixed or "import " in fixed:
-                        with open(safe_target, "w", encoding="utf-8") as f:
-                            f.write(fixed)
-                return {"ok": True, "output": f"Saved & syntax-verified {safe_target}"}
             return {"ok": True, "output": f"Saved {safe_target}"}
         if step.action == "run_cmd":
             if os.name == "nt" and step.target.startswith("python "):
