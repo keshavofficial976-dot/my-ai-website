@@ -1,4 +1,5 @@
 import os, json, base64, subprocess, urllib.request, urllib.error
+from urllib.parse import urlunparse
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,48 +44,42 @@ class AgentOut(BaseModel):
     reply: str
     steps: List[AgentStep]
 
-def call_openai_compat(url: str, key: str, model: str, prompt: str) -> dict:
-    body = json.dumps({
-        "model": model,
-        "response_format": {"type": "json_object"},
-        "messages": [
-            {"role": "system", "content": "Always respond with a valid JSON object matching the requested keys."},
-            {"role": "user", "content": prompt}
-        ],
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
-            return json.loads(raw["choices"][0]["message"]["content"])
-    except urllib.error.HTTPError as he:
-        err_body = he.read().decode("utf-8", errors="ignore")[:200]
-        raise RuntimeError(f"HTTP {he.code} at {url} ({model}): {err_body}")
-
-def call_groq_builtin(prompt: str) -> dict:
-    from urllib.parse import urlunparse
+def call_groq_fast(prompt: str) -> dict:
     gk = os.getenv("GROQ_API_KEY", "").strip()
     if not gk:
-        raise RuntimeError("No GROQ_API_KEY set")
+        raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    for m in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b"]:
+    for m in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+        body = json.dumps({
+            "model": m,
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": "Always respond with a valid JSON object matching the requested keys."},
+                {"role": "user", "content": prompt}
+            ],
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            endpoint,
+            data=body,
+            headers={"Authorization": f"Bearer {gk}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"},
+            method="POST",
+        )
         try:
-            return call_openai_compat(endpoint, gk, m, prompt)
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                raw = json.loads(resp.read().decode("utf-8"))
+                return json.loads(raw["choices"][0]["message"]["content"])
+        except urllib.error.HTTPError as he:
+            last_err = f"HTTP {he.code} ({m}): {he.read().decode('utf-8', errors='ignore')[:150]}"
         except Exception as e:
-            last_err = e
-    raise last_err
+            last_err = f"{m}: {e}"
+    raise RuntimeError(last_err or "Groq failed")
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     errors = []
     if not img_data:
         try:
-            return call_groq_builtin(prompt), "Maker: Groq Llama-3.3-70B | Verified (<2s)"
+            return call_groq_fast(prompt), "Maker: Groq Llama-3.3-70B | Verified (<2s)"
         except Exception as e:
             errors.append(f"Groq: {e}")
 
