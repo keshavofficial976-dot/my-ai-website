@@ -3,70 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Website Co-Pilot</title>
+  <title>AI Website & Desktop Agent Studio</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
-    .sidebar { width: 400px; min-width: 340px; background: #1e293b; border-right: 1px solid #334155; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .sidebar { width: 410px; min-width: 340px; background: #1e293b; border-right: 1px solid #334155; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .header { display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.15rem; color: #818cf8; }
+    .header h1 { font-size: 1.1rem; color: #818cf8; }
+    .mode-tabs { display: flex; gap: 6px; background: #0f172a; padding: 4px; border-radius: 8px; }
+    .tab-btn { flex: 1; padding: 7px; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: transparent; color: #94a3b8; }
+    .tab-btn.active { background: #4f46e5; color: #fff; }
     .owner-row { display: flex; gap: 6px; }
-    .owner-row input { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.78rem; outline: none; }
-    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-    .chip { background: #334155; color: #e2e8f0; border: none; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; cursor: pointer; }
+    .owner-row input { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.76rem; outline: none; }
+    .chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .chip { background: #334155; color: #e2e8f0; border: none; padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; }
     .chip:hover { background: #475569; }
-    .chat-box { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.84rem; line-height: 1.5; }
+    .chat-box { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.83rem; line-height: 1.5; }
     .msg { padding: 9px 12px; border-radius: 10px; max-width: 92%; word-wrap: break-word; }
-    .msg-user { align-self: flex-end; background: #4f46e5; color: #fff; border-bottom-right-radius: 2px; }
-    .msg-ai { align-self: flex-start; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-bottom-left-radius: 2px; }
-    .input-area { display: flex; flex-direction: column; gap: 8px; }
-    textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; resize: none; }
-    textarea:focus { border-color: #6366f1; }
-    .actions { display: flex; gap: 8px; }
-    .btn { padding: 10px 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.86rem; cursor: pointer; }
+    .msg-user { align-self: flex-end; background: #4f46e5; color: #fff; }
+    .msg-ai { align-self: flex-start; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
+    .step-card { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .step-actions { display: flex; gap: 6px; }
+    .btn-approve { background: #10b981; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .btn-skip { background: #475569; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+    .input-area { display: flex; flex-direction: column; gap: 7px; }
+    textarea { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 9px 11px; border-radius: 8px; font-size: 0.86rem; outline: none; resize: none; }
+    .actions { display: flex; gap: 6px; }
+    .btn { padding: 9px 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn-mic { background: #334155; color: #fff; flex: 1; }
-    .btn-mic:hover { background: #475569; }
     .btn-send { background: #4f46e5; color: #fff; flex: 2; }
-    .btn-send:hover { background: #4338ca; }
     .btn-send:disabled { opacity: 0.6; cursor: wait; }
     .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
-    .topbar { height: 54px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+    .topbar { height: 52px; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
     .top-btns { display: flex; gap: 8px; }
-    .btn-reset { background: #334155; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
-    .btn-download { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-reset { background: #334155; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .btn-download { background: #10b981; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
     iframe { flex: 1; width: 100%; border: none; background: #fff; }
-    @media (max-width: 768px) { body { flex-direction: column; overflow: auto; height: auto; } .sidebar { width: 100%; height: 65vh; } .main { height: 70vh; } }
+    .agent-log { flex: 1; padding: 24px; background: #020617; color: #38bdf8; font-family: monospace; font-size: 0.88rem; overflow-y: auto; display: none; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <div class="header">
-      <h1>AI Website Co-Pilot</h1>
-      <span style="font-size:0.74rem;color:#34d399;">● Two-Way Live</span>
+      <h1>AI Studio &amp; Agent</h1>
+      <span style="font-size:0.72rem;color:#34d399;">● Live Data + Desktop</span>
     </div>
 
-    <div class="owner-row">
+    <div class="mode-tabs">
+      <button id="tabWeb" class="tab-btn active" onclick="switchMode('web')">Website Builder</button>
+      <button id="tabAgent" class="tab-btn" onclick="switchMode('agent')">Desktop &amp; Code Agent</button>
+    </div>
+
+    <div class="owner-row" id="ownerRow">
       <input id="ownerEmail" type="email" placeholder="Your Email (for orders)">
       <input id="ownerWhatsapp" type="tel" placeholder="WhatsApp No.">
     </div>
 
-    <div class="chips">
+    <div class="chips" id="webChips">
+      <button class="chip" onclick="quickSend('Build a live crypto and Indian stock market tracker using real-time APIs')">Live Market Site</button>
       <button class="chip" onclick="quickSend('Build a modern bakery website with menu and order form')">Bakery</button>
-      <button class="chip" onclick="quickSend('Build a travel agency website with 6D/5N packages')">Travel</button>
-      <button class="chip" onclick="quickSend('What sections should I add to get more customers?')">Ask AI Ideas</button>
+      <button class="chip" onclick="quickSend('Build a live weather dashboard for Surat, Gujarat')">Live Weather</button>
+    </div>
+
+    <div class="chips" id="agentChips" style="display:none;">
+      <button class="chip" onclick="quickSend('Open Notepad and type a daily task checklist')">Open Notepad &amp; Type</button>
+      <button class="chip" onclick="quickSend('Create a Python script hello_auto.py that prints system time and run it')">Write &amp; Run Python</button>
+      <button class="chip" onclick="quickSend('List all files in my current folder')">Check Folder Files</button>
     </div>
 
     <div class="chat-box" id="chatBox">
-      <div class="msg msg-ai">Hi! Tell me what website you want to build, or ask me for design ideas—we can chat back and forth as I build and update your site on the right!</div>
+      <div class="msg msg-ai">Hi! Switch between <b>Website Builder</b> (with live Google Search &amp; live API data) and <b>Desktop &amp; Code Agent</b> (controls files, terminal &amp; Windows apps with your approval).</div>
     </div>
 
     <div class="input-area">
-      <div id="imgPreviewBar" style="display:none;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #475569;padding:6px 10px;border-radius:8px;font-size:0.78rem;color:#a5b4fc;">
+      <div id="imgPreviewBar" style="display:none;align-items:center;justify-content:space-between;background:#0f172a;border:1px solid #475569;padding:5px 9px;border-radius:8px;font-size:0.76rem;color:#a5b4fc;">
         <span id="imgFileName">Photo attached</span>
-        <button onclick="clearImage()" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">✕ Remove</button>
+        <button onclick="clearImage()" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">✕</button>
       </div>
       <input type="file" id="imgInput" accept="image/*" style="display:none;" onchange="handleImage(event)">
-      <textarea id="prompt" rows="2" placeholder="Chat with AI or say 'Change the menu' (Press Enter to send)..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <textarea id="prompt" rows="2" placeholder="Describe your website or desktop task (Enter to send)..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
       <div class="actions">
         <button class="btn btn-mic" onclick="document.getElementById('imgInput').click()">+ Photo</button>
         <button id="micBtn" class="btn btn-mic" onclick="startVoice()">Speak</button>
@@ -77,27 +92,44 @@
 
   <div class="main">
     <div class="topbar">
-      <span style="font-size:0.88rem;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
+      <span id="rightTitle" style="font-size:0.88rem;color:#cbd5e1;font-weight:600;">Live Website Preview</span>
       <div class="top-btns">
-        <button class="btn-reset" onclick="location.reload()">New Site</button>
-        <button class="btn-download" onclick="downloadSite()">Download Website</button>
+        <button class="btn-reset" onclick="location.reload()">Reset</button>
+        <button class="btn-download" id="dlBtn" onclick="downloadSite()">Download Website</button>
       </div>
     </div>
-    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Your Live Website Preview</h2><p>Chat with the AI on the left—ask for ideas or tell it what to build!</p></div></body></html>"></iframe>
+    <iframe id="preview" srcdoc="<html><body style='font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#475569;background:#f8fafc'><div style='text-align:center;padding:20px'><h2>Live Data Website &amp; Desktop Agent</h2><p>Ask for a live stock/weather site or switch to <b>Desktop &amp; Code Agent</b> mode on the left!</p></div></body></html>"></iframe>
+    <div id="agentLog" class="agent-log">Desktop &amp; Code Agent Terminal Log Ready...
+</div>
   </div>
 
   <script>
+    let mode = 'web';
+    let currentCode = '';
+    let chatHistory = [];
     let selectedImgData = '';
     let selectedImgMime = '';
+
+    function switchMode(newMode) {
+      mode = newMode;
+      document.getElementById('tabWeb').className = 'tab-btn ' + (mode === 'web' ? 'active' : '');
+      document.getElementById('tabAgent').className = 'tab-btn ' + (mode === 'agent' ? 'active' : '');
+      document.getElementById('ownerRow').style.display = mode === 'web' ? 'flex' : 'none';
+      document.getElementById('webChips').style.display = mode === 'web' ? 'flex' : 'none';
+      document.getElementById('agentChips').style.display = mode === 'agent' ? 'flex' : 'none';
+      document.getElementById('preview').style.display = mode === 'web' ? 'block' : 'none';
+      document.getElementById('agentLog').style.display = mode === 'agent' ? 'block' : 'none';
+      document.getElementById('dlBtn').style.display = mode === 'web' ? 'inline-block' : 'none';
+      document.getElementById('rightTitle').textContent = mode === 'web' ? 'Live Website Preview' : 'Desktop & Code Agent Execution Log';
+    }
 
     function handleImage(e) {
       const file = e.target.files.at(0);
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        const parts = reader.result.split(',');
         selectedImgMime = file.type || 'image/png';
-        selectedImgData = parts.at(1);
+        selectedImgData = reader.result.split(',').at(1);
         document.getElementById('imgFileName').textContent = '📎 ' + file.name;
         document.getElementById('imgPreviewBar').style.display = 'flex';
       };
@@ -111,9 +143,6 @@
       document.getElementById('imgPreviewBar').style.display = 'none';
     }
 
-    let currentCode = '';
-    let chatHistory = [];
-
     function appendMsg(role, text) {
       const box = document.getElementById('chatBox');
       const div = document.createElement('div');
@@ -122,6 +151,13 @@
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
       chatHistory.push({ role, text });
+    }
+
+    function logTerminal(line) {
+      const log = document.getElementById('agentLog');
+      log.textContent += '
+' + line;
+      log.scrollTop = log.scrollHeight;
     }
 
     function quickSend(text) {
@@ -135,11 +171,28 @@
       const rec = new SR();
       const btn = document.getElementById('micBtn');
       btn.textContent = 'Listening...';
-      rec.onresult = (e) => {
-        document.getElementById('prompt').value = e.results.at(0).at(0).transcript;
-      };
+      rec.onresult = (e) => { document.getElementById('prompt').value = e.results.at(0).at(0).transcript; };
       rec.onend = () => { btn.textContent = 'Speak'; };
       rec.start();
+    }
+
+    async function runApprovedStep(step, btnEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = 'Running...';
+      logTerminal('▶ Executing: ' + step.description);
+      try {
+        const res = await fetch('/api/agent/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(step)
+        });
+        const data = await res.json();
+        logTerminal((data.ok ? '✅ ' : '⚠️ ') + data.output);
+        btnEl.textContent = data.ok ? 'Done ✓' : 'Failed';
+      } catch (e) {
+        logTerminal('❌ Execution error.');
+        btnEl.textContent = 'Error';
+      }
     }
 
     async function sendMessage() {
@@ -149,34 +202,70 @@
       if (!text && !selectedImgData) return;
 
       box.value = '';
-      appendMsg('user', (selectedImgData ? '[Photo attached] ' : '') + (text || 'Please build/update based on this photo.'));
+      appendMsg('user', (selectedImgData ? '[Photo] ' : '') + (text || 'Build/update from image'));
       btn.disabled = true;
       btn.textContent = 'Thinking...';
 
+      const imgSnap = selectedImgData;
+      const mimeSnap = selectedImgMime;
+      clearImage();
+
       try {
-        const imgSnap = selectedImgData; clearImage(); const res = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text || 'Build or update the website based on this attached image.',
-            history: chatHistory,
-            current_code: currentCode,
-            owner_email: document.getElementById('ownerEmail').value,
-            owner_whatsapp: document.getElementById('ownerWhatsapp').value, image_data: selectedImgData, image_mime: selectedImgMime
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          appendMsg('ai', data.reply);
-          if (data.html) {
-            currentCode = data.html;
-            document.getElementById('preview').srcdoc = data.html;
+        if (mode === 'web') {
+          const res = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text || 'Build or update the website based on this attached image.',
+              history: chatHistory,
+              current_code: currentCode,
+              owner_email: document.getElementById('ownerEmail').value,
+              owner_whatsapp: document.getElementById('ownerWhatsapp').value,
+              image_data: imgSnap,
+              image_mime: mimeSnap
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            appendMsg('ai', data.reply);
+            if (data.html) {
+              currentCode = data.html;
+              document.getElementById('preview').srcdoc = data.html;
+            }
+          } else {
+            appendMsg('ai', 'AI server busy—please try again.');
           }
         } else {
-          appendMsg('ai', 'Sorry, the AI server is busy right now—please try sending that again!');
+          const res = await fetch('/api/agent/plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task: text })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            appendMsg('ai', data.reply);
+            const chatBox = document.getElementById('chatBox');
+            (data.steps || []).forEach((step) => {
+              const card = document.createElement('div');
+              card.className = 'step-card';
+              card.innerHTML = '<div><b>Step:</b> ' + step.description + '</div><div style="font-size:0.74rem;color:#94a3b8;">Action: ' + step.action_type + ' → ' + step.target + '</div>';
+              const actions = document.createElement('div');
+              actions.className = 'step-actions';
+              const appBtn = document.createElement('button');
+              appBtn.className = 'btn-approve';
+              appBtn.textContent = 'Approve & Run';
+              appBtn.onclick = () => runApprovedStep(step, appBtn);
+              actions.appendChild(appBtn);
+              card.appendChild(actions);
+              chatBox.appendChild(card);
+              chatBox.scrollTop = chatBox.scrollHeight;
+            });
+          } else {
+            appendMsg('ai', 'Could not plan desktop task—please try again.');
+          }
         }
       } catch (e) {
-        appendMsg('ai', 'Connection error—please check your internet and try again.');
+        appendMsg('ai', 'Connection error—check server.');
       }
 
       btn.disabled = false;
