@@ -128,7 +128,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
         return parse_loose_json(res.text), "Maker: Gemini 3.5 Flash-Lite | Verified"
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Gemini Vision error: {e}")
-
+@app.get("/api/health")
 def health():
     return {
         "status": "awake",
