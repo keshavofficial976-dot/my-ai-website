@@ -80,7 +80,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
                 contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
             except Exception:
                 pass
-        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]:
+        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-2.5-flash"]:
             try:
                 res = client.models.generate_content(
                     model=m,
