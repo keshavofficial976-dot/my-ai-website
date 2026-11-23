@@ -66,7 +66,7 @@ def call_groq_fast(prompt: str) -> dict:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
                 return json.loads(raw["choices"][0]["message"]["content"])
         except urllib.error.HTTPError as he:
