@@ -53,7 +53,8 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
     models_url = urlunparse(("https", "api." + "groq.com", "/openai/v1/models", "", "", ""))
     m_req = urllib.request.Request(models_url, headers=headers, method="GET")
     with urllib.request.urlopen(m_req, timeout=6) as m_resp:
-        avail = [x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", []) if "whisper" not in x["id"] and "guard" not in x["id"]]
+        avail = [x["id"] for x in json.loads(m_resp.read().decode("utf-8")).get("data", []) if not any(w in x["id"] for w in ("whisper", "guard", "allam", "tts"))]
+
     if not avail:
         raise RuntimeError("No chat models enabled on this Groq API key")
     # Prefer largest/smartest available model first
@@ -72,7 +73,8 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
-                txt = raw["choices"]["message"]["content"].strip()
+                txt = raw.get("choices").pop(0).get("message").get("content").strip()
+
                 txt = txt[txt.find("{"):txt.rfind("}") + 1]
                 return json.loads(txt), f"Maker: Groq {m} | Verified"
         except Exception as e:
