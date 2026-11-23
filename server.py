@@ -58,28 +58,27 @@ def call_openai_compat(url: str, key: str, model: str, prompt: str) -> dict:
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "AI-Studio/1.0"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=25) as resp:
-        raw = json.loads(resp.read().decode("utf-8"))
-        return json.loads(raw["choices"]["message"]["content"])
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+            return json.loads(raw["choices"][0]["message"]["content"])
+    except urllib.error.HTTPError as he:
+        err_body = he.read().decode("utf-8", errors="ignore")[:200]
+        raise RuntimeError(f"HTTP {he.code} at {url} ({model}): {err_body}")
 
 def call_groq_builtin(prompt: str) -> dict:
+    from urllib.parse import urlunparse
     gk = os.getenv("GROQ_API_KEY", "").strip()
-    if gk:
+    if not gk:
+        raise RuntimeError("No GROQ_API_KEY set")
+    endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
+    last_err = None
+    for m in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b"]:
         try:
-            endpoint = base64.b64decode("aHR0cHM6Ly9hcGkuZ3JvcS5jb20vb3BlbmFpL3YxL2NoYXQvY29tcGxldGlvbnM=").decode()
-
-            return call_openai_compat(endpoint, gk, "llama-3.3-70b-versatile", prompt)
-        except Exception as e1:
-            ork = os.getenv("OPENROUTER_API_KEY", "").strip()
-            if ork:
-                or_url = "https://openrouter." + "ai/api/v1/chat/completions"
-                return call_openai_compat(or_url, ork, "deepseek/deepseek-chat-v3-0324:free", prompt)
-            raise e1
-    ork = os.getenv("OPENROUTER_API_KEY", "").strip()
-    if ork:
-        or_url = "https://openrouter." + "ai/api/v1/chat/completions"
-        return call_openai_compat(or_url, ork, "deepseek/deepseek-chat-v3-0324:free", prompt)
-    raise RuntimeError("No GROQ_API_KEY or OPENROUTER_API_KEY set")
+            return call_openai_compat(endpoint, gk, m, prompt)
+        except Exception as e:
+            last_err = e
+    raise last_err
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     errors = []
