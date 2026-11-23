@@ -59,7 +59,7 @@ def groq_json(prompt: str) -> dict:
         timeout=20,
     )
     r.raise_for_status()
-    return json.loads(r.json()["choices"][0]["message"]["content"])
+    return json.loads(r.json()["choices"]["message"]["content"])
 
 def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> tuple[dict, str]:
     contents = [prompt]
@@ -79,13 +79,7 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
         except Exception:
             continue
     try:
-        try:
-        try:
         return groq_json(prompt), "Maker: Groq Llama-3.3-70B | Checked"
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"AI error: {e}")
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"AI error: {e}")
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"AI error: {e}")
 
