@@ -50,12 +50,11 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
         raise RuntimeError("GROQ_API_KEY is missing in Render Environment Variables")
     endpoint = urlunparse(("https", "api." + "groq.com", "/openai/v1/chat/completions", "", "", ""))
     last_err = None
-    # Active Groq Developer/Free tier models (500-1000 tokens/sec)
-    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]:
+    for m in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile"]:
         body = json.dumps({
             "model": m,
             "messages": [
-                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown fences."},
+                {"role": "system", "content": "Return ONLY a valid raw JSON object matching the requested keys. No markdown."},
                 {"role": "user", "content": prompt}
             ],
         }).encode("utf-8")
@@ -68,7 +67,7 @@ def call_groq_fast(prompt: str) -> tuple[dict, str]:
         try:
             with urllib.request.urlopen(req, timeout=8) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
-                txt = raw["choices"][0]["message"]["content"].strip()
+                txt = raw["choices"]["message"]["content"].strip()
                 txt = txt[txt.find("{"):txt.rfind("}") + 1]
                 return json.loads(txt), f"Maker: Groq {m} | Verified (<2s)"
         except urllib.error.HTTPError as he:
@@ -94,16 +93,15 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
                 contents.append(types.Part.from_bytes(data=base64.b64decode(img_data), mime_type=img_mime))
             except Exception:
                 pass
-        for m in ["gemini-3.5-flash-lite", "gemini-3.8-flash"]:
-            try:
-                res = client.models.generate_content(
-                    model=m,
-                    contents=contents,
-                    config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
-                )
-                return json.loads(res.text), f"Maker: {m} | Verified"
-            except Exception as e:
-                errors.append(f"{m}: {e}")
+        try:
+            res = client.models.generate_content(
+                model="gemini-3.5-flash-lite",
+                contents=contents,
+                config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema_cls),
+            )
+            return json.loads(res.text), "Maker: Gemini 3.5 Flash-Lite | Verified"
+        except Exception as e:
+            errors.append(f"Gemini: {e}")
     else:
         errors.append("GEMINI_API_KEY missing")
 
@@ -111,7 +109,11 @@ def ask_ai(prompt: str, schema_cls, img_data: str = "", img_mime: str = "") -> t
 
 @app.get("/api/health")
 def health():
-    return {"status": "awake"}
+    return {
+        "status": "awake",
+        "has_groq_key": bool(os.getenv("GROQ_API_KEY", "").strip()),
+        "has_gemini_key": bool(os.getenv("GEMINI_API_KEY", "").strip()),
+    }
 
 @app.get("/")
 def home():
